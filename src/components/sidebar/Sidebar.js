@@ -14,10 +14,12 @@ import GroupIcon from "@mui/icons-material/Group";
 import TableChartIcon from "@mui/icons-material/TableChart";
 import AccountCircleIcon from "@mui/icons-material/AccountCircle";
 import { useNavigate, useLocation } from "react-router-dom";
+import { useTheme } from "@mui/material/styles";
 
 const Sidebar = ({ user = { name: "Username", nip: "123123123", photo: "", role: "Role" } }) => {
     const navigate = useNavigate();
     const location = useLocation();
+    const theme = useTheme();
 
     const menuItems = [
         { text: "Homepage", icon: <HomeIcon />, path: "/home" },
@@ -30,12 +32,12 @@ const Sidebar = ({ user = { name: "Username", nip: "123123123", photo: "", role:
         <Box
             width={240}
             height="100vh"
-            bgcolor="#f9f9f9"
+            bgcolor={theme.palette.grey}
             p={2}
             display="flex"
             flexDirection="column"
             alignItems="center"
-            borderRight="1px solid #ccc"
+            borderRight={`1px solid ${theme.palette.grey[100]}`}
         >
             <Box display="flex" flexDirection="column" alignItems="center" mb={2}>
                 <Avatar
@@ -49,7 +51,7 @@ const Sidebar = ({ user = { name: "Username", nip: "123123123", photo: "", role:
             <Typography variant="body1" gutterBottom>
                 {user.role}
             </Typography>
-            <Typography variant="body2" color="textSecondary">
+            <Typography variant="body2" color="text.secondary">
                 NIP : {user.nip}
             </Typography>
             <Divider sx={{ width: "100%", my: 2 }} />

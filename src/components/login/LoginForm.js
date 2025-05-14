@@ -57,6 +57,8 @@ const LoginForm = () => {
         return;
       }
 
+      console.log("Token diterima:", data.token);
+      
       if (rememberMe) {
         localStorage.setItem("token", data.token);
         localStorage.setItem("user", JSON.stringify(data.user));

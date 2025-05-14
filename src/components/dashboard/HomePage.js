@@ -3,19 +3,19 @@ import {
     Box, Typography, AppBar, Toolbar, IconButton, InputBase, Paper,
     Select, MenuItem, Table, TableBody, TableCell, TableContainer,
     TableHead, TableRow, Button, Avatar, Menu, Dialog, DialogTitle,
-    DialogContent, DialogActions, ListItemIcon,
+    DialogContent, DialogActions, ListItemIcon
 } from "@mui/material";
-import { Person, Logout, Menu as MenuIcon } from "@mui/icons-material";
-import SearchIcon from '@mui/icons-material/Search';
-import Sidebar from '../sidebar/Sidebar';
+import { Person, Logout, Menu as MenuIcon, Search as SearchIcon } from "@mui/icons-material";
+import Sidebar from "../sidebar/Sidebar";
 import { useNavigate } from "react-router-dom";
+import { useTheme } from "@mui/material/styles";
 
 const HomePage = () => {
     const navigate = useNavigate();
+    const theme = useTheme();
     const [sidebarOpen, setSidebarOpen] = React.useState(true);
     const [logoutDialogOpen, setLogoutDialogOpen] = React.useState(false);
     const user = JSON.parse(sessionStorage.getItem("user") || localStorage.getItem("user"));
-
     const userName = user?.nama || "User";
 
     const [anchorEl, setAnchorEl] = React.useState(null);
@@ -23,16 +23,14 @@ const HomePage = () => {
     const handleClick = (event) => setAnchorEl(event.currentTarget);
     const handleClose = () => setAnchorEl(null);
     const handleSignOut = () => {
-        if (sessionStorage.getItem("user")) {
-            sessionStorage.removeItem("user");
-            sessionStorage.removeItem("token");
-        }
+        sessionStorage.removeItem("user");
+        sessionStorage.removeItem("token");
         navigate("/");
-    };    
+    };
 
     return (
         <Box>
-            <AppBar position="static" color="default" elevation={1}>
+            <AppBar position="static" color="default" elevation={1} sx={{ bgcolor: theme.palette.primary.main }}>
                 <Toolbar sx={{ justifyContent: "space-between" }}>
                     <Box display="flex" alignItems="center">
                         <IconButton onClick={() => setSidebarOpen(!sidebarOpen)}>
@@ -41,7 +39,7 @@ const HomePage = () => {
                         <IconButton>
                             <img src="/logo192.png" alt="Logo" width={30} />
                         </IconButton>
-                        <Typography variant="h6" sx={{ ml: 1 }}>
+                        <Typography variant="h6" sx={{ ml: 1, color: theme.palette.text.primary }}>
                             Website Pendataan Pelanggaran Akademik
                         </Typography>
                     </Box>
@@ -50,7 +48,7 @@ const HomePage = () => {
                             onClick={handleClick}
                             sx={{
                                 display: "flex", alignItems: "center", cursor: "pointer", px: 1, py: 0.5,
-                                borderRadius: 1, "&:hover": { backgroundColor: "action.hover" },
+                                borderRadius: 1, "&:hover": { backgroundColor: theme.palette.action.hover },
                             }}
                         >
                             <Avatar
@@ -65,8 +63,8 @@ const HomePage = () => {
 
                         <Menu anchorEl={anchorEl} open={open} onClose={handleClose} onClick={handleClose}
                             PaperProps={{ elevation: 3, sx: { mt: 1.5, minWidth: 150 } }}
-                            anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
-                            transformOrigin={{ vertical: 'top', horizontal: 'right' }}
+                            anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
+                            transformOrigin={{ vertical: "top", horizontal: "right" }}
                         >
                             <MenuItem>
                                 <ListItemIcon><Person fontSize="small" /></ListItemIcon>
@@ -86,11 +84,11 @@ const HomePage = () => {
                         name: user?.nama || "User",
                         nip: user?.nip || "-",
                         role: user?.role || "-",
-                        profile: user?.foto || "/default-avatar.png"
+                        photo: user?.foto || "/default-avatar.png"
                     }} />
                 )}
                 <Box flex={1} p={3}>
-                    <Typography variant="h6" fontWeight="bold">
+                    <Typography variant="h6" fontWeight="bold" color="text.primary">
                         Selamat datang, {userName}!
                     </Typography>
                     <Typography variant="body2" color="text.secondary">
@@ -99,7 +97,7 @@ const HomePage = () => {
                     <Box display="flex" alignItems="center" mt={3} gap={2}>
                         <Paper sx={{ display: "flex", alignItems: "center", p: "2px 8px", width: 240 }} variant="outlined">
                             <SearchIcon sx={{ mr: 1 }} />
-                            <InputBase placeholder="Lorem ..." fullWidth />
+                            <InputBase placeholder="Cari data..." fullWidth />
                         </Paper>
                         <Select size="small" defaultValue="Lorem">
                             <MenuItem value="Lorem">Lorem</MenuItem>
@@ -126,13 +124,13 @@ const HomePage = () => {
                                         <TableCell>XX-00-XX</TableCell>
                                         <TableCell>Lorem</TableCell>
                                         <TableCell>
-                                            <Button size="small" variant="outlined">Lorem</Button>
+                                            <Button size="small" variant="outlined" color="primary">Lorem</Button>
                                         </TableCell>
                                         <TableCell>
-                                            <Button size="small" variant="contained">View</Button>
+                                            <Button size="small" variant="contained" color="primary">View</Button>
                                         </TableCell>
                                         <TableCell>
-                                            <Button size="small" variant="contained">View</Button>
+                                            <Button size="small" variant="contained" color="primary">View</Button>
                                         </TableCell>
                                     </TableRow>
                                 ))}
