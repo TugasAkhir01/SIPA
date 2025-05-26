@@ -1,14 +1,33 @@
 import React from "react";
 import ReactDOM from "react-dom/client";
 import App from "./App";
-import { ThemeProvider } from "@mui/material/styles";
 import CssBaseline from "@mui/material/CssBaseline";
-import theme from "./themes/theme";
+import GlobalStyles from "@mui/material/GlobalStyles";
+import "./index.css";
 
 const root = ReactDOM.createRoot(document.getElementById("root"));
 root.render(
-  <ThemeProvider theme={theme}>
+  <>
     <CssBaseline />
+    <GlobalStyles
+      styles={{
+        html: {
+          fontFamily: "'Poppins', sans-serif",
+        },
+        body: {
+          fontFamily: "'Poppins', sans-serif",
+        },
+        "*": {
+          fontFamily: "'Poppins', sans-serif !important",
+        },
+        "*::before": {
+          fontFamily: "'Poppins', sans-serif !important",
+        },
+        "*::after": {
+          fontFamily: "'Poppins', sans-serif !important",
+        },
+      }}
+    />
     <App />
-  </ThemeProvider>
+  </>
 );

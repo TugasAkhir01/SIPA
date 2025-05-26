@@ -1,10 +1,15 @@
 import React from "react";
 import { Box, Button, Paper, Typography } from "@mui/material";
-import ContactSupportIcon from "@mui/icons-material/ContactSupport";
+import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined";
 
 const ForgotPasswordDialog = ({ onClose }) => {
+  const handleOverlayClick = () => {
+    onClose();
+  };
+
   return (
     <Box
+      onClick={handleOverlayClick}
       sx={{
         position: "absolute",
         top: 0,
@@ -19,28 +24,26 @@ const ForgotPasswordDialog = ({ onClose }) => {
       }}
     >
       <Paper
+        onClick={(e) => e.stopPropagation()}
         sx={{
-          padding: 3,
+          p: 4,
           textAlign: "center",
-          backgroundColor: "background.paper",
+          backgroundColor: "#f9f9f9",
           width: 280,
-          height: 300,
-          borderRadius: 2,
+          borderRadius: 3,
+          boxShadow: 3,
         }}
       >
-        <Box mb={2}>
-          <Box
-            sx={{
-              width: 60,
-              height: 60,
-              backgroundColor: "grey.100",
-              borderRadius: "50%",
-              margin: "0 auto",
-              mt: 3,
-              mb: 2
-            }}
-          />
-        </Box>
+        <Box
+          component="img"
+          src="/assets/whatsapp.png"
+          alt="WhatsApp Logo"
+          sx={{
+            width: 100,
+            height: 100,
+            mb: 4,
+          }}
+        />
         <a
           href="https://wa.me/6282216669978"
           target="_blank"
@@ -49,25 +52,29 @@ const ForgotPasswordDialog = ({ onClose }) => {
         >
           <Button
             variant="outlined"
-            color="primary"
             fullWidth
             sx={{
-              borderColor: "primary.main",
-              color: "primary.main",
+              backgroundColor: "white",
+              color: "black",
               textTransform: "none",
-              fontWeight: "bold",
-              mt: 5,
+              fontWeight: 500,
+              borderRadius: 3,
+              borderColor: "#ddd",
+              boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1)",
+              py: 1.2,
             }}
           >
-            <Box sx={{ display: "flex", alignItems: "center", gap: 3 }}>
-              <ContactSupportIcon sx={{ marginLeft: -3.5 }} />
-              <Box sx={{ order: 2 }}>KONTAK ADMIN</Box>
+            <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+              <InfoOutlinedIcon sx={{ fontSize: 20 }} />
+              <Typography variant="body1" fontWeight={500}>
+                Helpdesk PuTI
+              </Typography>
             </Box>
           </Button>
         </a>
         <Typography
           variant="body2"
-          sx={{ mt: 2, cursor: "pointer" }}
+          sx={{ mt: 3, cursor: "pointer", textDecoration: "underline" }}
           onClick={onClose}
         >
           Tutup

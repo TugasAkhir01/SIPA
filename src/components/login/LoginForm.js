@@ -1,10 +1,10 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
-  Button,
+  Box,
+  Paper,
   TextField,
   Typography,
-  Paper,
-  Box,
+  Button,
   Alert,
   Checkbox,
   FormControlLabel,
@@ -14,7 +14,6 @@ import {
 import { Visibility, VisibilityOff } from "@mui/icons-material";
 import { useNavigate } from "react-router-dom";
 import ForgotPasswordDialog from "./ForgotPassword";
-import { useEffect } from "react";
 
 const LoginForm = () => {
   const navigate = useNavigate();
@@ -40,13 +39,10 @@ const LoginForm = () => {
 
   const handleLogin = async () => {
     setError("");
-
     try {
       const response = await fetch("http://localhost:3001/api/login", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ identifier, password }),
       });
 
@@ -57,8 +53,6 @@ const LoginForm = () => {
         return;
       }
 
-      console.log("Token diterima:", data.token);
-      
       if (rememberMe) {
         localStorage.setItem("token", data.token);
         localStorage.setItem("user", JSON.stringify(data.user));
@@ -80,35 +74,51 @@ const LoginForm = () => {
   return (
     <Box
       sx={{
-        height: "100vh",
+        height: "90vh",
         display: "flex",
         justifyContent: "center",
         alignItems: "center",
         backgroundColor: "background.default",
+        position: "relative",
+        overflow: "hidden",
       }}
     >
-      <Paper
-        elevation={3}
+      <Box
+        component="img"
+        src="/assets/bg-illustration.jpg"
+        alt="Background"
         sx={{
-          padding: 8,
+          position: "absolute",
+          top: "50%",
+          left: "50%",
+          transform: "translate(-50%, -50%)",
+          width: { xs: "100%", md: "60%" },
+          height: { xs: "100%", md: "80%" },
+          objectFit: "contain",
+          zIndex: 0,
+        }}
+      />
+
+      <Paper
+        elevation={4}
+        sx={{
+          zIndex: 1,
+          px: 5,
+          py: 6,
           textAlign: "center",
-          backgroundColor: "background.paper",
           width: 400,
-          borderRadius: 2,
         }}
       >
-        <Box mb={2}>
+        <Box>
           <Box
-            sx={{
-              width: 60,
-              height: 60,
-              backgroundColor: "grey.100",
-              borderRadius: "50%",
-              margin: "0 auto",
-            }}
+            component="img"
+            src="/assets/telkom-logo.png"
+            alt="Telkom University"
+            sx={{ height: 100 }}
           />
         </Box>
-        <Typography variant="h6" color="text.primary" gutterBottom>
+
+        <Typography variant="h4" fontWeight="700" color="text.primary" gutterBottom>
           LOGIN
         </Typography>
 
@@ -122,6 +132,7 @@ const LoginForm = () => {
           value={identifier}
           onChange={(e) => setIdentifier(e.target.value)}
         />
+
         <TextField
           label="Password"
           variant="outlined"
@@ -133,10 +144,7 @@ const LoginForm = () => {
           InputProps={{
             endAdornment: (
               <InputAdornment position="end">
-                <IconButton
-                  onClick={() => setShowPassword((prev) => !prev)}
-                  edge="end"
-                >
+                <IconButton onClick={() => setShowPassword(!showPassword)} edge="end">
                   {showPassword ? <VisibilityOff /> : <Visibility />}
                 </IconButton>
               </InputAdornment>
@@ -144,7 +152,7 @@ const LoginForm = () => {
           }}
         />
 
-        <Box sx={{ width: "100%", textAlign: "left", mt: 1 }}>
+        <Box sx={{ textAlign: "left", mt: 1 }}>
           <FormControlLabel
             control={
               <Checkbox
@@ -153,16 +161,28 @@ const LoginForm = () => {
                 color="primary"
               />
             }
-            label="Remember Me"
+            label={
+              <Typography sx={{ fontWeight: 700, fontFamily: "'Poppins', sans-serif" }}>
+                Remember Me
+              </Typography>
+            }
           />
         </Box>
-
-
         <Button
           variant="contained"
-          color="primary"
           fullWidth
-          sx={{ mt: 2, height: 48, fontWeight: "bold" }}
+          sx={{
+            mt: 2,
+            height: 48,
+            fontWeight: 700,
+            fontFamily: "'Poppins', sans-serif",
+            fontSize: 16,
+            backgroundColor: "#87ACFF",
+            color: "#000",
+            '&:hover': {
+              backgroundColor: "#6f98f5",
+            },
+          }}
           onClick={handleLogin}
         >
           LOGIN
@@ -171,15 +191,19 @@ const LoginForm = () => {
         <Typography
           variant="body2"
           color="text.secondary"
-          sx={{ mt: 2, cursor: "pointer" }}
+          sx={{
+            mt: 2,
+            cursor: "pointer",
+            fontWeight: 700,
+            fontSize: 16,
+            fontFamily: "'Poppins', sans-serif",
+            textDecoration: "underline",
+          }}
           onClick={() => setOpenForgot(true)}
         >
           Lupa Password ?
         </Typography>
-
-        {openForgot && (
-          <ForgotPasswordDialog onClose={() => setOpenForgot(false)} />
-        )}
+        {openForgot && <ForgotPasswordDialog onClose={() => setOpenForgot(false)} />}
       </Paper>
     </Box>
   );

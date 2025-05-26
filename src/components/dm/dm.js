@@ -6,13 +6,16 @@ import {
     DialogContent, DialogActions, ListItemIcon, OutlinedInput,
 } from "@mui/material";
 import { PictureAsPdfRounded, DescriptionRounded } from "@mui/icons-material";
-import { Person, Logout, Menu as MenuIcon, Search as SearchIcon } from "@mui/icons-material";
+import { Person, Logout, Menu as MenuIcon, Search as SearchIcon, CameraAlt as CameraAltIcon } from "@mui/icons-material";
+import EditOutlined from '@mui/icons-material/EditOutlined';
+import UploadIcon from '@mui/icons-material/Upload';
+import DeleteIcon from '@mui/icons-material/Delete';
+import AddIcon from '@mui/icons-material/Add';
 import Sidebar from "../sidebar/Sidebar";
-import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useTheme } from "@mui/material/styles";
 
-const HomePage = () => {
+const DataManagement = () => {
     const navigate = useNavigate();
     const theme = useTheme();
     const [sidebarOpen, setSidebarOpen] = React.useState(true);
@@ -34,23 +37,13 @@ const HomePage = () => {
 
     const userName = user?.nama || "User";
 
-    const [today, setToday] = useState("");
-    useEffect(() => {
-        const now = new Date();
-        const formatter = new Intl.DateTimeFormat("id-ID", {
-            weekday: "long",
-            day: "numeric",
-            month: "long",
-            year: "numeric"
-        });
-        setToday(formatter.format(now));
-    }, []);
-
     React.useEffect(() => {
         if (!user) {
             navigate("/");
         }
     }, [user, navigate]);
+
+    const [openAddDialog, setOpenAddDialog] = React.useState(false);
 
     return (
         <Box>
@@ -110,43 +103,55 @@ const HomePage = () => {
                     }} />
                 )}
                 <Box flex={1} p={3}>
-                    <Typography variant="h6" fontWeight="bold" color="text.secondary">
-                        Selamat datang, {userName}!
-                    </Typography>
-                    <Typography variant="body2" color="text.secondary">
-                        {today}
-                    </Typography>
                     <Typography variant="h5" fontWeight="bold" color="text.primary" sx={{ mt: 5 }}>
-                        Data Pelanggaran Saat Ini
+                        Data Management
                     </Typography>
-                    <Box display="flex" alignItems="center" mt={2} gap={2}>
-                        <Paper sx={{ display: "flex", alignItems: "center", p: "2px 8px", width: 240, borderRadius: 2 }} variant="outlined">
-                            <SearchIcon sx={{ mr: 1, color: 'text.disabled' }} />
-                            <InputBase placeholder="Search..." fullWidth />
-                        </Paper>
-                        <Select
-                            size="small"
-                            defaultValue="Urutkan"
-                            input={<OutlinedInput />}
+                    <Box display="flex" alignItems="center" justifyContent="space-between" mt={2}>
+                        <Box display="flex" alignItems="center" gap={2}>
+                            <Paper sx={{ display: 'flex', alignItems: 'center', p: '2px 8px', width: 240, borderRadius: 2, }} variant="outlined">
+                                <SearchIcon sx={{ mr: 1, color: 'text.disabled' }} />
+                                <InputBase placeholder="Search..." fullWidth />
+                            </Paper>
+                            <Select
+                                size="small"
+                                defaultValue="Urutkan"
+                                input={<OutlinedInput />}
+                                sx={{
+                                    '& .MuiOutlinedInput-root': {
+                                        borderRadius: 2,
+                                    },
+                                    '& .MuiOutlinedInput-notchedOutline': {
+                                        borderRadius: 2,
+                                    },
+                                }}
+                            >
+                                <MenuItem value="Urutkan">Urutkan</MenuItem>
+                                <MenuItem value="No">No.</MenuItem>
+                                <MenuItem value="Nama">Nama</MenuItem>
+                                <MenuItem value="NIM">NIM</MenuItem>
+                                <MenuItem value="jurusan">Jurusan</MenuItem>
+                                <MenuItem value="IdKasus">ID Kasus</MenuItem>
+                                <MenuItem value="JenisKasus">Jenis Kasus</MenuItem>
+                                <MenuItem value="Status">Status</MenuItem>
+                            </Select>
+                        </Box>
+                        <Button
+                            variant="contained"
+                            startIcon={<AddIcon />}
+                            onClick={() => setOpenAddDialog(true)}
                             sx={{
-                                '& .MuiOutlinedInput-root': {
-                                    borderRadius: 2,
+                                textTransform: 'none',
+                                bgcolor: '#212121',
+                                color: '#fff',
+                                '&:hover': {
+                                    bgcolor: '#000',
                                 },
-                                '& .MuiOutlinedInput-notchedOutline': {
-                                    borderRadius: 2,
-                                }
+                                borderRadius: 2,
+                                height: 40,
                             }}
                         >
-                            <MenuItem value="Urutkan">Urutkan</MenuItem>
-                            <MenuItem value="No">No.</MenuItem>
-                            <MenuItem value="Nama">Nama</MenuItem>
-                            <MenuItem value="NIM">NIM</MenuItem>
-                            <MenuItem value="jurusan">Jurusan</MenuItem>
-                            <MenuItem value="IdKasus">ID Kasus</MenuItem>
-                            <MenuItem value="JenisKasus">Jenis Kasus</MenuItem>
-                            <MenuItem value="Status">Status</MenuItem>
-                        </Select>
-
+                            Add New
+                        </Button>
                     </Box>
                     <TableContainer
                         component={Paper}
@@ -170,6 +175,7 @@ const HomePage = () => {
                                         "Status",
                                         "Hasil Sidang",
                                         "Notulensi",
+                                        "Edit"
                                     ].map((head, i) => (
                                         <TableCell key={i} sx={{ fontWeight: "bold" }}>
                                             {head}
@@ -237,6 +243,11 @@ const HomePage = () => {
                                             >
                                                 View
                                             </Button>
+                                        </TableCell>
+                                        <TableCell>
+                                            <IconButton size="small" color="#000" sx={{ mx: 0.5 }}>
+                                                <EditOutlined fontSize="small" />
+                                            </IconButton>
                                         </TableCell>
                                     </TableRow>
                                 ))}
@@ -312,6 +323,153 @@ const HomePage = () => {
                 </Box>
             </Box>
             <Dialog
+                open={openAddDialog}
+                onClose={() => setOpenAddDialog(false)}
+                maxWidth="md"
+                fullWidth
+                sx={{ '& .MuiDialog-paper': { borderRadius: '16px' } }}
+            >
+                <DialogTitle>
+                    <Typography variant="h6" fontWeight="bold">Tambahkan Kasus Baru</Typography>
+                </DialogTitle>
+                <DialogContent dividers sx={{ px: 4, py: 3 }}>
+                    <Box display="flex" justifyContent="center" mb={4}>
+                        <Box
+                            sx={{
+                                border: '2px dashed #ccc',
+                                borderRadius: 2,
+                                width: 280,
+                                height: 180,
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                flexDirection: 'column',
+                                bgcolor: '#fafafa',
+                            }}
+                        >
+                            <Avatar sx={{ width: 72, height: 72, mb: 2 }} />
+                            <Button
+                                variant="contained"
+                                size="small"
+                                sx={{
+                                    mt: 1,
+                                    bgcolor: '#000',
+                                    '&:hover': { bgcolor: '#333' },
+                                    textTransform: 'none',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: 1.2,
+                                }}
+                            >
+                                <CameraAltIcon fontSize="small" />
+                                Upload Photo
+                            </Button>
+
+                        </Box>
+                    </Box>
+                    <Box display="grid" gridTemplateColumns="1fr 1fr" gap={2} mb={2}>
+                        <Box>
+                            <Typography fontSize={14} fontWeight={500} mb={0.5}>NIM</Typography>
+                            <OutlinedInput fullWidth placeholder="Masukkan NIM" size="small" />
+                        </Box>
+                        <Box>
+                            <Typography fontSize={14} fontWeight={500} mb={0.5}>Jurusan</Typography>
+                            <OutlinedInput fullWidth placeholder="Masukkan Jurusan" size="small" />
+                        </Box>
+                    </Box>
+                    <Box display="grid" gridTemplateColumns="1fr 1fr" gap={2} mb={2}>
+                        <Box>
+                            <Typography fontSize={14} fontWeight={500} mb={0.5}>ID Kasus</Typography>
+                            <OutlinedInput fullWidth placeholder="Masukkan ID Kasus" size="small" />
+                        </Box>
+                        <Box>
+                            <Typography fontSize={14} fontWeight={500} mb={0.5}>Nama Kasus</Typography>
+                            <OutlinedInput fullWidth placeholder="Masukkan Nama Kasus" size="small" />
+                        </Box>
+                    </Box>
+                    <Box mb={3}>
+                        <Typography fontSize={14} fontWeight={500} mb={0.5}>Case Description</Typography>
+                        <OutlinedInput
+                            fullWidth
+                            placeholder="Masukkan Deskripsi Kasus"
+                            multiline
+                            minRows={3}
+                        />
+                    </Box>
+                    <Box mb={4}>
+                        <Typography fontSize={14} fontWeight={500} mb={0.5}>Status</Typography>
+                        <Select fullWidth displayEmpty defaultValue="" size="small" >
+                            <MenuItem value="" disabled>Select Status</MenuItem>
+                            <MenuItem value="Selesai">Selesai</MenuItem>
+                            <MenuItem value="Berjalan">Berjalan</MenuItem>
+                            <MenuItem value="Tertunda">Tertunda</MenuItem>
+                        </Select>
+                    </Box>
+                    <Box display="flex" flexDirection="column" gap={3} mb={1}>
+                        <Box display="flex" alignItems="center" gap={2}>
+                            <Box>
+                                <Typography fontSize={14} fontWeight={500} mb={0.5}>Hasil Sidang</Typography>
+                                <Button
+                                    variant="contained"
+                                    component="label"
+                                    startIcon={<UploadIcon />}
+                                    sx={{
+                                        width: 120,
+                                        bgcolor: '#000',
+                                        borderRadius: 2,
+                                        textTransform: 'none',
+                                        '&:hover': { bgcolor: '#333' }
+                                    }}
+                                >
+                                    Upload
+                                    <input type="file" hidden />
+                                </Button>
+                            </Box>
+                            <IconButton aria-label="delete" size="medium" sx={{ mt: 3 }}>
+                                <DeleteIcon />
+                            </IconButton>
+                        </Box>
+                        <Box display="flex" alignItems="center" gap={2}>
+                            <Box>
+                                <Typography fontSize={14} fontWeight={500} mb={0.5}>Notulensi Sidang</Typography>
+                                <Button
+                                    variant="contained"
+                                    component="label"
+                                    startIcon={<UploadIcon />}
+                                    sx={{
+                                        width: 120,
+                                        bgcolor: '#000',
+                                        borderRadius: 2,
+                                        textTransform: 'none',
+                                        '&:hover': { bgcolor: '#333' }
+                                    }}
+                                >
+                                    Upload
+                                    <input type="file" hidden />
+                                </Button>
+                            </Box>
+                            <IconButton aria-label="delete" size="medium" sx={{ mt: 3 }}>
+                                <DeleteIcon />
+                            </IconButton>
+                        </Box>
+                    </Box>
+                </DialogContent>
+                <DialogActions sx={{ px: 6, pb: 2, pt: 2 }}>
+                    <Box flexGrow={1} />
+                    <Button
+                        variant="contained"
+                        sx={{ textTransform: 'none', borderRadius: 2, bgcolor: '#000', '&:hover': { bgcolor: '#333' } }}>
+                        Save
+                    </Button>
+                    <Button
+                        onClick={() => setOpenAddDialog(false)}
+                        variant="contained"
+                        sx={{ textTransform: 'none', borderRadius: 2, bgcolor: '#000', '&:hover': { bgcolor: '#333' } }}>
+                        Back
+                    </Button>
+                </DialogActions>
+            </Dialog>
+            <Dialog
                 open={logoutDialogOpen}
                 onClose={() => setLogoutDialogOpen(false)}
                 sx={{ '& .MuiDialog-paper': { borderRadius: '16px', width: 330, minHeight: 300 } }}
@@ -342,4 +500,4 @@ const HomePage = () => {
     );
 };
 
-export default HomePage;
+export default DataManagement;
