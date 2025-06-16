@@ -13,6 +13,15 @@ import Sidebar from "../sidebar/Sidebar";
 import { useNavigate } from "react-router-dom";
 import { useTheme } from "@mui/material/styles";
 
+const validatePassword = (password) => {
+    const errors = [];
+    if (!/.{6,}/.test(password)) errors.push("Minimal 6 karakter");
+    if (!/[A-Z]/.test(password)) errors.push("Minimal 1 huruf kapital");
+    if (!/[^A-Za-z0-9]/.test(password)) errors.push("Minimal 1 simbol");
+    if (!/(?=.*[a-zA-Z])(?=.*[0-9])/.test(password)) errors.push("Kombinasi huruf dan angka");
+    return errors;
+};
+
 const UserManagement = () => {
     const navigate = useNavigate();
     const theme = useTheme();
@@ -32,6 +41,9 @@ const UserManagement = () => {
 
     const [deleteDialogOpen, setDeleteDialogOpen] = React.useState(false);
     const [userToDelete, setUserToDelete] = React.useState(null);
+
+    const [newUserPasswordError, setNewUserPasswordError] = React.useState([]);
+    const [editUserPasswordError, setEditUserPasswordError] = React.useState([]);
 
     const togglePassword = (userId) => {
         setShowPasswords((prev) => ({
@@ -92,24 +104,50 @@ const UserManagement = () => {
     };
 
     const handleUpdateUser = async () => {
+        const passwordErrors = validatePassword(selectedUser.password);
+        if (passwordErrors.length > 0) {
+            setEditUserPasswordError(passwordErrors);
+            return;
+        }
+
         try {
-            const res = await fetch(`http://localhost:3001/api/users/update-without-photo/${selectedUser.id}`, {
+            const roleMap = {
+                admin: 1,
+                staff: 2,
+                user: 3,
+            };
+
+            const payload = {
+                nip: selectedUser.nip,
+                nama: selectedUser.nama,
+                email: selectedUser.email,
+                password: selectedUser.password,
+                role_id: roleMap[selectedUser.role],
+                no_telp: selectedUser.no_telp || "+62",
+                fakultas: selectedUser.fakultas || "Informatika",
+                jurusan: selectedUser.jurusan || "Rekayasa Perangkat Lunak",
+            };
+
+            const res = await fetch(`http://localhost:3001/api/users/${selectedUser.id}`, {
                 method: "PUT",
                 headers: {
                     "Content-Type": "application/json",
                     Authorization: `Bearer ${token}`,
                 },
-                body: JSON.stringify(selectedUser),
+                body: JSON.stringify(payload),
             });
 
+            const result = await res.json();
+
             if (!res.ok) {
-                throw new Error("Gagal mengupdate user");
+                console.error("Server error response:", result);
+                alert("Gagal mengupdate data: " + (result?.message || 'Terjadi kesalahan'));
+                return;
             }
 
-            const data = await res.json();
             const updatedUser = {
-                ...data.updatedUser,
-                password: selectedUser.password,
+                ...selectedUser,
+                ...payload,
             };
 
             setUsers((prevUsers) =>
@@ -130,28 +168,65 @@ const UserManagement = () => {
     const [showAddPassword, setShowAddPassword] = React.useState(false);
 
     const handleCreateUser = async () => {
+        const passwordErrors = validatePassword(newUser.password);
+        if (passwordErrors.length > 0) {
+            setNewUserPasswordError(passwordErrors);
+            return;
+        }
+
         try {
-            const res = await fetch("http://localhost:3001/api/users", {
+            const roleMap = {
+                admin: 1,
+                staff: 2,
+                user: 3,
+            };
+
+            const payload = {
+                nip: newUser.nip,
+                nama: newUser.nama,
+                email: newUser.email,
+                password: newUser.password,
+                role_id: roleMap[newUser.role],
+                no_telp: newUser.no_telp || "+62",
+                fakultas: newUser.fakultas || "Informatika",
+                jurusan: newUser.jurusan || "Rekayasa Perangkat Lunak",
+                photo: newUser.photo || null,
+            };
+
+            const res = await fetch("http://localhost:3001/api/users/add", {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
                     Authorization: `Bearer ${token}`,
                 },
-                body: JSON.stringify(newUser),
+                body: JSON.stringify(payload),
             });
 
-            if (!res.ok) throw new Error("Gagal membuat user");
-
             const data = await res.json();
+
+            if (!res.ok) {
+                console.error("Error response from server:", data);
+                throw new Error("Gagal menambah user");
+            }
+
             setUsers((prev) => [...prev, { ...newUser, id: data.userId }]);
             setOpenAddDialog(false);
-            setNewUser({ nip: "", nama: "", email: "", password: "", role: "", photo: "" });
+            setNewUser({
+                nip: "",
+                nama: "",
+                email: "",
+                password: "",
+                role: "",
+                no_telp: "",
+                fakultas: "",
+                jurusan: "",
+                photo: ""
+            });
         } catch (err) {
             console.error("Gagal menambahkan user:", err);
             alert("Terjadi kesalahan saat menambahkan user.");
         }
     };
-
 
     const handleEditUser = (user) => {
         setSelectedUser(user);
@@ -162,6 +237,10 @@ const UserManagement = () => {
         setUserToDelete(user);
         setDeleteDialogOpen(true);
     };
+
+    const userPhoto = user?.photo
+        ? `http://localhost:3001/uploads/profile/${user.photo}`
+        : "/default-avatar.png";
 
     return (
         <Box>
@@ -184,11 +263,7 @@ const UserManagement = () => {
                                 borderRadius: 1, "&:hover": { backgroundColor: theme.palette.action.hover },
                             }}
                         >
-                            <Avatar
-                                alt={userName}
-                                src={user?.foto || "/default-avatar.png"}
-                                sx={{ width: 36, height: 36, mr: 1 }}
-                            />
+                            <Avatar alt={userName} src={userPhoto} onError={(e) => { e.target.onerror = null; e.target.src = "/default-avatar.png"; }} sx={{ width: 36, height: 36, mr: 1 }} />
                             <Typography variant="h6" fontWeight="bold" fontSize={16} sx={{ color: "#fff" }}>
                                 {userName}
                             </Typography>
@@ -199,7 +274,7 @@ const UserManagement = () => {
                             anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
                             transformOrigin={{ vertical: "top", horizontal: "right" }}
                         >
-                            <MenuItem>
+                            <MenuItem onClick={() => navigate("/profile")}>
                                 <ListItemIcon><Person fontSize="small" /></ListItemIcon>
                                 Profile
                             </MenuItem>
@@ -212,14 +287,7 @@ const UserManagement = () => {
                 </Toolbar>
             </AppBar>
             <Box display="flex" height="93vh" bgcolor="#F8F9FA">
-                {sidebarOpen && (
-                    <Sidebar user={{
-                        name: user?.nama || "User",
-                        nip: user?.nip || "-",
-                        role: user?.role || "-",
-                        photo: user?.foto || "/default-avatar.png"
-                    }} />
-                )}
+                {sidebarOpen && <Sidebar user={{ name: userName, nip: user?.nip || "-", photo: userPhoto }} />}
                 <Box flex={1} p={3} mt={5}>
                     <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
                         <Typography variant="h5" fontWeight="bold">User Management</Typography>
@@ -261,41 +329,50 @@ const UserManagement = () => {
                                 </TableRow>
                             </TableHead>
                             <TableBody>
-                                {users.map((row, idx) => (
-                                    <TableRow key={idx}>
-                                        <TableCell>{row.nip}</TableCell>
-                                        <TableCell>{row.nama}</TableCell>
-                                        <TableCell>{row.email}</TableCell>
-                                        <TableCell>{row.role}</TableCell>
-                                        <TableCell>
-                                            <div style={{ display: "flex", alignItems: "center" }}>
-                                                <span>{showPasswords[row.id] ? row.password : "********"}</span>
-                                                <IconButton
-                                                    size="small"
-                                                    onClick={() => togglePassword(row.id)}
-                                                    style={{
-                                                        marginLeft: 4,
-                                                        padding: 4,
-                                                        position: "relative",
-                                                        top: showPasswords[row.id] ? "-1px" : "-4px"
-                                                    }}
-                                                >
-                                                    <Visibility fontSize="small" />
+                                {users
+                                    .filter((row) => row.role !== 0 && row.role.toLowerCase() !== "super admin")
+                                    .map((row, idx) => (
+                                        <TableRow key={idx}>
+                                            <TableCell>{row.nip}</TableCell>
+                                            <TableCell>{row.nama}</TableCell>
+                                            <TableCell>{row.email}</TableCell>
+                                            <TableCell>
+                                                {row.role
+                                                    ? row.role
+                                                        .split(" ")
+                                                        .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+                                                        .join(" ")
+                                                    : "-"}
+                                            </TableCell>
+                                            <TableCell>
+                                                <div style={{ display: "flex", alignItems: "center" }}>
+                                                    <span>{showPasswords[row.id] ? row.password : "********"}</span>
+                                                    <IconButton
+                                                        size="small"
+                                                        onClick={() => togglePassword(row.id)}
+                                                        style={{
+                                                            marginLeft: 4,
+                                                            padding: 4,
+                                                            position: "relative",
+                                                            top: showPasswords[row.id] ? "-1px" : "-4px"
+                                                        }}
+                                                    >
+                                                        <Visibility fontSize="small" />
+                                                    </IconButton>
+                                                </div>
+                                            </TableCell>
+                                            <TableCell align="center">
+                                                <IconButton size="small" color="#000" sx={{ mx: 0.5 }} onClick={() => handleEditUser(row)}>
+                                                    <EditOutlined fontSize="small" />
                                                 </IconButton>
-                                            </div>
-                                        </TableCell>
-                                        <TableCell align="center">
-                                            <IconButton size="small" color="#000" sx={{ mx: 0.5 }} onClick={() => handleEditUser(row)}>
-                                                <EditOutlined fontSize="small" />
-                                            </IconButton>
-                                            {user?.role === "super admin" && (
-                                                <IconButton size="small" color="error" sx={{ mx: 0.5 }} onClick={() => handleOpenDeleteDialog(row)}>
-                                                    <Delete fontSize="small" />
-                                                </IconButton>
-                                            )}
-                                        </TableCell>
-                                    </TableRow>
-                                ))}
+                                                {user?.role === "super admin" && (
+                                                    <IconButton size="small" color="error" sx={{ mx: 0.5 }} onClick={() => handleOpenDeleteDialog(row)}>
+                                                        <Delete fontSize="small" />
+                                                    </IconButton>
+                                                )}
+                                            </TableCell>
+                                        </TableRow>
+                                    ))}
                             </TableBody>
                         </Table>
                     </TableContainer>
@@ -369,7 +446,7 @@ const UserManagement = () => {
                 </Box>
             </Box>
             <Dialog open={openAddDialog} onClose={() => setOpenAddDialog(false)} maxWidth="sm" fullWidth>
-                <DialogTitle>Tambah User Baru</DialogTitle>
+                <DialogTitle sx={{ fontWeight: 600 }}>Tambah User Baru</DialogTitle>
                 <DialogContent dividers>
                     <Box display="flex" flexDirection="column" gap={2} mt={1}>
                         <Typography>NIP</Typography>
@@ -402,30 +479,56 @@ const UserManagement = () => {
                                 value={newUser.role}
                                 onChange={(e) => setNewUser({ ...newUser, role: e.target.value })}
                                 displayEmpty
-                                sx={{ borderRadius: "8px", fontWeight: "bold", height: "50px" }}
+                                sx={{ borderRadius: "8px", fontWeight: "bold", height: "50px", pl: 0.5 }}
                             >
-                                <MenuItem value="wakil dekan">Wakil Dekan</MenuItem>
-                                <MenuItem value="akademik">Akademik</MenuItem>
-                                <MenuItem value="kemahasiswaan">Kemahasiswaan</MenuItem>
+                                <MenuItem value="admin">Admin</MenuItem>
+                                <MenuItem value="staff">Staff</MenuItem>
+                                <MenuItem value="user">User</MenuItem>
                             </Select>
                         </FormControl>
                         <Typography>Password</Typography>
-                        <Box sx={{ position: "relative" }}>
-                            <InputBase
-                                placeholder="Password"
-                                fullWidth
-                                type={showAddPassword ? "text" : "password"}
-                                value={newUser.password}
-                                onChange={(e) => setNewUser({ ...newUser, password: e.target.value })}
-                                sx={{ border: "1px solid #ccc", borderRadius: 1, px: 2, py: 1, pr: 5 }}
-                            />
-                            <IconButton
-                                size="small"
-                                onClick={() => setShowAddPassword((prev) => !prev)}
-                                sx={{ position: "absolute", right: 8, top: "50%", transform: "translateY(-50%)" }}
-                            >
-                                <Visibility fontSize="small" />
-                            </IconButton>
+                        <Box>
+                            <Box sx={{ position: "relative" }}>
+                                <InputBase
+                                    placeholder="Password"
+                                    fullWidth
+                                    type={showAddPassword ? "text" : "password"}
+                                    value={newUser.password}
+                                    onChange={(e) => setNewUser({ ...newUser, password: e.target.value })}
+                                    error={newUserPasswordError.length > 0}
+                                    sx={{
+                                        border: "1px solid #ccc",
+                                        borderRadius: 1,
+                                        px: 2,
+                                        py: 1,
+                                        pr: 5,
+                                        height: 48,
+                                    }}
+                                />
+                                <IconButton
+                                    size="small"
+                                    onClick={() => setShowAddPassword((prev) => !prev)}
+                                    sx={{
+                                        position: "absolute",
+                                        right: 8,
+                                        top: "50%",
+                                        transform: "translateY(-50%)",
+                                        color: "#666",
+                                    }}
+                                >
+                                    <Visibility fontSize="small" />
+                                </IconButton>
+                            </Box>
+
+                            {newUserPasswordError.length > 0 && (
+                                <Box mt={0.5} ml={1}>
+                                    {newUserPasswordError.map((err, idx) => (
+                                        <Typography key={idx} color="error" fontSize={12}>
+                                            • {err}
+                                        </Typography>
+                                    ))}
+                                </Box>
+                            )}
                         </Box>
                     </Box>
                 </DialogContent>
@@ -472,7 +575,7 @@ const UserManagement = () => {
                 </DialogActions>
             </Dialog>
             <Dialog open={editDialogOpen} onClose={() => setEditDialogOpen(false)} maxWidth="sm" fullWidth>
-                <DialogTitle>Edit User</DialogTitle>
+                <DialogTitle sx={{ fontWeight: 600 }}>Edit User</DialogTitle>
                 <DialogContent dividers>
                     <Box display="flex" flexDirection="column" gap={2} mt={1}>
                         <Typography>
@@ -525,6 +628,7 @@ const UserManagement = () => {
                                     borderRadius: "8px",
                                     fontWeight: "bold",
                                     height: "50px",
+                                    pl: 0.9,
                                     backgroundColor:
                                         selectedUser?.role === "akademik"
                                             ? "#FFFFFF"
@@ -536,46 +640,70 @@ const UserManagement = () => {
                                 }}
                             >
                                 <MenuItem
-                                    value="wakil dekan"
+                                    value="admin"
                                     sx={{ backgroundColor: "#F8F9FA", fontWeight: "bold" }}
                                 >
-                                    Wakil Dekan
+                                    Admin
                                 </MenuItem>
                                 <MenuItem
-                                    value="akademik"
+                                    value="staff"
                                     sx={{ backgroundColor: "#FFFFFF", fontWeight: "bold" }}
                                 >
-                                    Akademik
+                                    Staff
                                 </MenuItem>
                                 <MenuItem
-                                    value="kemahasiswaan"
+                                    value="user"
                                     sx={{ backgroundColor: "#F8F9FA", fontWeight: "bold" }}
                                 >
-                                    Kemahasiswaan
+                                    User
                                 </MenuItem>
                             </Select>
                         </FormControl>
                         <Typography>
                             Password
                         </Typography>
-                        <Box sx={{ position: "relative" }}>
-                            <InputBase
-                                placeholder="Password"
-                                fullWidth
-                                type={showEditPassword ? "text" : "password"}
-                                value={selectedUser?.password || ""}
-                                onChange={(e) =>
-                                    setSelectedUser({ ...selectedUser, password: e.target.value })
-                                }
-                                sx={{ border: "1px solid #ccc", borderRadius: 1, px: 2, py: 1, pr: 5 }}
-                            />
-                            <IconButton
-                                size="small"
-                                onClick={() => setShowEditPassword((prev) => !prev)}
-                                sx={{ position: "absolute", right: 8, top: "50%", transform: "translateY(-50%)" }}
-                            >
-                                <Visibility fontSize="small" />
-                            </IconButton>
+                        <Box>
+                            <Box sx={{ position: "relative" }}>
+                                <InputBase
+                                    placeholder="Password"
+                                    fullWidth
+                                    type={showEditPassword ? "text" : "password"}
+                                    value={selectedUser?.password || ""}
+                                    onChange={(e) => setSelectedUser({ ...selectedUser, password: e.target.value })}
+                                    error={editUserPasswordError.length > 0}
+                                    sx={{
+                                        border: "1px solid #ccc",
+                                        borderRadius: 1,
+                                        px: 2,
+                                        py: 1,
+                                        pr: 5,
+                                        height: 48,
+                                    }}
+                                />
+                                <IconButton
+                                    size="small"
+                                    onClick={() => setShowEditPassword((prev) => !prev)}
+                                    sx={{
+                                        position: "absolute",
+                                        right: 8,
+                                        top: "50%",
+                                        transform: "translateY(-50%)",
+                                        color: "#666",
+                                    }}
+                                >
+                                    <Visibility fontSize="small" />
+                                </IconButton>
+                            </Box>
+
+                            {editUserPasswordError.length > 0 && (
+                                <Box mt={0.5} ml={1}>
+                                    {editUserPasswordError.map((err, idx) => (
+                                        <Typography key={idx} color="error" fontSize={12}>
+                                            • {err}
+                                        </Typography>
+                                    ))}
+                                </Box>
+                            )}
                         </Box>
                     </Box>
                 </DialogContent>

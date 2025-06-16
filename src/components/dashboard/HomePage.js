@@ -8,7 +8,7 @@ import {
 import { PictureAsPdfRounded, DescriptionRounded } from "@mui/icons-material";
 import { Person, Logout, Menu as MenuIcon, Search as SearchIcon } from "@mui/icons-material";
 import Sidebar from "../sidebar/Sidebar";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { useTheme } from "@mui/material/styles";
 
@@ -28,11 +28,11 @@ const HomePage = () => {
         navigate("/");
     };
 
-    const user = React.useMemo(() => {
-        return JSON.parse(sessionStorage.getItem("user") || localStorage.getItem("user"));
-    }, []);
+    const user = JSON.parse(sessionStorage.getItem("user") || localStorage.getItem("user"));
+    const token = sessionStorage.getItem("token") || localStorage.getItem("token");
 
     const userName = user?.nama || "User";
+    const [violations, setViolations] = React.useState([]);
 
     const [today, setToday] = useState("");
     useEffect(() => {
@@ -51,6 +51,33 @@ const HomePage = () => {
             navigate("/");
         }
     }, [user, navigate]);
+
+    const fetchData = useCallback(async () => {
+        try {
+            const res = await fetch("http://localhost:3001/api/violations", {
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                    "Content-Type": "application/json",
+                },
+            });
+
+            if (!res.ok) throw new Error("Gagal ambil data");
+
+            const data = await res.json();
+            setViolations(data);
+        } catch (err) {
+            console.error("❌ Gagal fetch:", err);
+        }
+    }, [token]);
+
+    useEffect(() => {
+        if (!token) return;
+        fetchData();
+    }, [fetchData, token]);
+
+    const userPhoto = user?.photo
+        ? `http://localhost:3001/uploads/profile/${user.photo}`
+        : "/default-avatar.png";
 
     return (
         <Box>
@@ -73,11 +100,7 @@ const HomePage = () => {
                                 borderRadius: 1, "&:hover": { backgroundColor: theme.palette.action.hover },
                             }}
                         >
-                            <Avatar
-                                alt={userName}
-                                src={user?.foto || "/default-avatar.png"}
-                                sx={{ width: 36, height: 36, mr: 1 }}
-                            />
+                            <Avatar alt={userName} src={userPhoto} onError={(e) => { e.target.onerror = null; e.target.src = "/default-avatar.png"; }} sx={{ width: 36, height: 36, mr: 1 }} />
                             <Typography variant="h6" fontWeight="bold" fontSize={16} sx={{ color: "#fff" }}>
                                 {userName}
                             </Typography>
@@ -88,7 +111,7 @@ const HomePage = () => {
                             anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
                             transformOrigin={{ vertical: "top", horizontal: "right" }}
                         >
-                            <MenuItem>
+                            <MenuItem onClick={() => navigate("/profile")}>
                                 <ListItemIcon><Person fontSize="small" /></ListItemIcon>
                                 Profile
                             </MenuItem>
@@ -101,14 +124,7 @@ const HomePage = () => {
                 </Toolbar>
             </AppBar>
             <Box display="flex" height="93vh" bgcolor="#F8F9FA">
-                {sidebarOpen && (
-                    <Sidebar user={{
-                        name: user?.nama || "User",
-                        nip: user?.nip || "-",
-                        role: user?.role || "-",
-                        photo: user?.foto || "/default-avatar.png"
-                    }} />
-                )}
+                {sidebarOpen && <Sidebar user={{ name: userName, nip: user?.nip || "-", photo: userPhoto }} />}
                 <Box flex={1} p={3}>
                     <Typography variant="h6" fontWeight="bold" color="text.secondary">
                         Selamat datang, {userName}!
@@ -169,7 +185,7 @@ const HomePage = () => {
                                         "Jenis Kasus",
                                         "Status",
                                         "Hasil Sidang",
-                                        "Notulensi",
+                                        "Notulensi"
                                     ].map((head, i) => (
                                         <TableCell key={i} sx={{ fontWeight: "bold" }}>
                                             {head}
@@ -178,30 +194,41 @@ const HomePage = () => {
                                 </TableRow>
                             </TableHead>
                             <TableBody>
-                                {[1, 2, 3].map((row) => (
-                                    <TableRow key={row}>
-                                        <TableCell>{row}</TableCell>
-                                        <TableCell>Lorem</TableCell>
-                                        <TableCell>00000000</TableCell>
-                                        <TableCell>Lorem</TableCell>
-                                        <TableCell>XX-00-XX</TableCell>
-                                        <TableCell>Lorem</TableCell>
+                                {violations.map((row, index) => (
+                                    <TableRow key={row.id}>
+                                        <TableCell>{index + 1}</TableCell>
+                                        <TableCell>{row.nama}</TableCell>
+                                        <TableCell>{row.nim}</TableCell>
+                                        <TableCell>{row.jurusan}</TableCell>
+                                        <TableCell>{row.id_kasus}</TableCell>
+                                        <TableCell>{row.jenis_kasus}</TableCell>
                                         <TableCell>
                                             <Button
                                                 size="small"
-                                                disableElevation
                                                 sx={{
-                                                    bgcolor: row === 1 ? "#28A745" : row === 2 ? "#F6404F" : "#DEE2E6",
-                                                    color: row === 3 ? "#000" : "#fff",
+                                                    bgcolor:
+                                                        row.status === 3
+                                                            ? "#28A745"
+                                                            : row.status === 4
+                                                                ? "#F6404F"
+                                                                : row.status === 2
+                                                                    ? "#FFC107"
+                                                                    : "#DEE2E6",
+                                                    color:
+                                                        row.status === 1 || row.status === 2 ? "#000" : "#fff",
                                                     borderRadius: "50px",
                                                     px: 2,
-                                                    textTransform: "none",
                                                     fontWeight: 500,
-                                                    minWidth: 80,
                                                     fontSize: 13,
                                                 }}
                                             >
-                                                {row === 1 ? "Selesai" : row === 2 ? "Berjalan" : "Tertunda"}
+                                                {row.status === 3
+                                                    ? "Selesai"
+                                                    : row.status === 4
+                                                        ? "Dibatalkan"
+                                                        : row.status === 2
+                                                            ? "Tertunda"
+                                                            : "Berjalan"}
                                             </Button>
                                         </TableCell>
                                         <TableCell>
