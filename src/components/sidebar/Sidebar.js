@@ -27,6 +27,9 @@ const Sidebar = ({
     const navigate = useNavigate();
     const location = useLocation();
 
+    const token = localStorage.getItem("token") || sessionStorage.getItem("token");
+    console.log("Token:", token);
+
     const roleMap = {
         "super admin": 0,
         "admin": 1,
@@ -34,7 +37,10 @@ const Sidebar = ({
         "user": 3,
     };
 
-    const storedUser = JSON.parse(localStorage.getItem("user") || "{}");
+    const storedUser = JSON.parse(
+        localStorage.getItem("user") || sessionStorage.getItem("user") || "{}"
+    );
+
     const rawRole = storedUser?.role ?? "user";
 
     const role = typeof rawRole === "string"
@@ -45,8 +51,7 @@ const Sidebar = ({
         { text: "Beranda", icon: <HomeIcon />, path: "/home", minRole: 3 },
         { text: "Data Management", icon: <TableChartIcon />, path: "/data-management", minRole: 2 },
         { text: "User Management", icon: <GroupIcon />, path: "/user-management", minRole: 1 },
-        { text: "Approval", icon: <FactCheckIcon />, path: "/approval", minRole: 1}
-        // { text: "Profile", icon: <AccountCircleIcon />, path: "/profile", minRole: 3 },
+        { text: "Approval", icon: <FactCheckIcon />, path: "/approval", minRole: 1 }
     ];
 
     const visibleMenus = menuItems.filter(item => role <= item.minRole);
@@ -92,7 +97,9 @@ const Sidebar = ({
                     SiPPAK
                 </Typography>
             </Paper>
+
             <Divider sx={{ width: "100%", my: 1, backgroundColor: "black" }} />
+
             <Box
                 display="flex"
                 flexDirection="row"
@@ -107,9 +114,7 @@ const Sidebar = ({
                     sx={{ width: 60, height: 60 }}
                 />
                 <Box>
-                    <Typography fontWeight="bold">
-                        {user.name}
-                    </Typography>
+                    <Typography fontWeight="bold">{user.name}</Typography>
                     <Typography fontWeight="bold" color="text.secondary">
                         NIP : {user.nip}
                     </Typography>
@@ -117,8 +122,9 @@ const Sidebar = ({
             </Box>
 
             <Divider sx={{ width: "100%", my: 1, backgroundColor: "black" }} />
+
             <List sx={{ width: "100%", mt: 2 }}>
-                {visibleMenus.map((item, index) => {
+                {visibleMenus.map((item) => {
                     const isSelected = location.pathname === item.path;
 
                     return (
