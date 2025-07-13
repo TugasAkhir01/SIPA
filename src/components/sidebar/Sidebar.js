@@ -13,7 +13,8 @@ import {
 import HomeIcon from "@mui/icons-material/Home";
 import GroupIcon from "@mui/icons-material/Group";
 import TableChartIcon from "@mui/icons-material/TableChart";
-import AccountCircleIcon from "@mui/icons-material/AccountCircle";
+import FactCheckIcon from '@mui/icons-material/FactCheck';
+// import AccountCircleIcon from "@mui/icons-material/AccountCircle";
 import { useNavigate, useLocation } from "react-router-dom";
 
 const Sidebar = ({
@@ -26,17 +27,34 @@ const Sidebar = ({
     const navigate = useNavigate();
     const location = useLocation();
 
+    const roleMap = {
+        "super admin": 0,
+        "admin": 1,
+        "staff": 2,
+        "user": 3,
+    };
+
+    const storedUser = JSON.parse(localStorage.getItem("user") || "{}");
+    const rawRole = storedUser?.role ?? "user";
+
+    const role = typeof rawRole === "string"
+        ? roleMap[rawRole.toLowerCase()] ?? 3
+        : Number(rawRole);
+
     const menuItems = [
-        { text: "Beranda", icon: <HomeIcon />, path: "/home" },
-        { text: "Data Management", icon: <TableChartIcon />, path: "/data-management" },
-        { text: "User Management", icon: <GroupIcon />, path: "/user-management" },
-        { text: "Profile", icon: <AccountCircleIcon />, path: "/profile" },
+        { text: "Beranda", icon: <HomeIcon />, path: "/home", minRole: 3 },
+        { text: "Data Management", icon: <TableChartIcon />, path: "/data-management", minRole: 2 },
+        { text: "User Management", icon: <GroupIcon />, path: "/user-management", minRole: 1 },
+        { text: "Approval", icon: <FactCheckIcon />, path: "/approval", minRole: 1}
+        // { text: "Profile", icon: <AccountCircleIcon />, path: "/profile", minRole: 3 },
     ];
+
+    const visibleMenus = menuItems.filter(item => role <= item.minRole);
 
     return (
         <Box
             width={270}
-            height="93vh"
+            height="100%"
             bgcolor="#fff"
             p={2}
             sx={{
@@ -99,35 +117,44 @@ const Sidebar = ({
             </Box>
 
             <Divider sx={{ width: "100%", my: 1, backgroundColor: "black" }} />
-            <List sx={{ width: "100%" }}>
-                {menuItems.map((item, index) => (
-                    <ListItem
-                        button
-                        key={index}
-                        onClick={() => navigate(item.path)}
-                        selected={location.pathname === item.path}
-                        sx={{
-                            borderRadius: 2,
-                            mb: 1,
-                            bgcolor:
-                                location.pathname === item.path
-                                    ? "#e0e0e0"
-                                    : "transparent",
-                        }}
-                    >
-                        <ListItemIcon sx={{ minWidth: 36 }}>
-                            {item.icon}
-                        </ListItemIcon>
-                        <ListItemText
-                            primary={item.text}
-                            primaryTypographyProps={{
-                                fontWeight:
-                                    location.pathname === item.path ? "bold" : "normal",
-                                fontSize: 14,
+            <List sx={{ width: "100%", mt: 2 }}>
+                {visibleMenus.map((item, index) => {
+                    const isSelected = location.pathname === item.path;
+
+                    return (
+                        <ListItem
+                            key={item.path}
+                            button
+                            selected={isSelected}
+                            onClick={() => navigate(item.path)}
+                            sx={{
+                                borderRadius: "12px",
+                                mb: 1.5,
+                                px: 2,
+                                py: 1.5,
+                                bgcolor: isSelected ? "#CED4DA !important" : "transparent",
+                                "&.Mui-selected:hover": {
+                                    bgcolor: "#CED4DA !important",
+                                },
+                                "&:hover": {
+                                    bgcolor: "#CED4DA",
+                                },
                             }}
-                        />
-                    </ListItem>
-                ))}
+                        >
+                            <ListItemIcon sx={{ minWidth: 36, color: "#333" }}>
+                                {item.icon}
+                            </ListItemIcon>
+                            <ListItemText
+                                primary={item.text}
+                                primaryTypographyProps={{
+                                    fontWeight: "bold",
+                                    fontSize: "15px",
+                                    color: "#333",
+                                }}
+                            />
+                        </ListItem>
+                    );
+                })}
             </List>
         </Box>
     );

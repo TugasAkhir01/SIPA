@@ -6,6 +6,7 @@ import HomePage from "./components/dashboard/HomePage";
 import UserManagement from "./components/um/um";
 import DataManagement from "./components/dm/dm";
 import Profile from "./components/profile/profile";
+import Approval from "./components/approval/approval";
 
 function App() {
   return (
@@ -16,6 +17,7 @@ function App() {
         <Route path="/home" element={<HomePage />} />
         <Route path="/user-management" element={<UserManagement />} />
         <Route path="/data-management" element={<DataManagement />} />
+        <Route path="/approval" element={<Approval/>} />
         <Route path="/profile" element={<Profile />} />
       </Routes>
     </Router>

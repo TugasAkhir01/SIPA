@@ -45,11 +45,34 @@ const UserManagement = () => {
     const [newUserPasswordError, setNewUserPasswordError] = React.useState([]);
     const [editUserPasswordError, setEditUserPasswordError] = React.useState([]);
 
+    const [currentPage, setCurrentPage] = React.useState(1);
+    const itemsPerPage = 10;
+
+    const filteredUsers = users.filter(
+        (row) => row.role !== 0 && row.role.toLowerCase() !== "super admin"
+    );
+    const totalPages = Math.ceil(filteredUsers.length / itemsPerPage);
+    const paginatedUsers = filteredUsers.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
+
     const togglePassword = (userId) => {
         setShowPasswords((prev) => ({
             ...prev,
             [userId]: !prev[userId],
         }));
+    };
+
+    const [alertDialog, setAlertDialog] = React.useState({
+        open: false,
+        title: '',
+        message: '',
+    });
+
+    const showAlert = (title, message) => {
+        setAlertDialog({
+            open: true,
+            title,
+            message,
+        });
     };
 
     React.useEffect(() => {
@@ -99,7 +122,7 @@ const UserManagement = () => {
             if (!res.ok) throw new Error("Gagal menghapus user");
             setUsers((prev) => prev.filter((u) => u.id !== id));
         } catch (err) {
-            console.error("Gagal hapus:", err);
+            showAlert("Kesalahan", "Terjadi kesalahan saat menghapus user.");
         }
     };
 
@@ -141,7 +164,7 @@ const UserManagement = () => {
 
             if (!res.ok) {
                 console.error("Server error response:", result);
-                alert("Gagal mengupdate data: " + (result?.message || 'Terjadi kesalahan'));
+                showAlert("Gagal Mengupdate", result?.message || "Terjadi kesalahan");
                 return;
             }
 
@@ -157,7 +180,7 @@ const UserManagement = () => {
             setEditDialogOpen(false);
         } catch (err) {
             console.error("Error saat update user:", err);
-            alert("Terjadi kesalahan saat mengupdate data.");
+            showAlert("Kesalahan", "Terjadi kesalahan saat mengupdate data.");
         }
     };
 
@@ -222,9 +245,10 @@ const UserManagement = () => {
                 jurusan: "",
                 photo: ""
             });
+            showAlert("Sukses", "User berhasil ditambahkan.");
         } catch (err) {
             console.error("Gagal menambahkan user:", err);
-            alert("Terjadi kesalahan saat menambahkan user.");
+            showAlert("Kesalahan", "Terjadi kesalahan saat menambahkan user.");
         }
     };
 
@@ -243,7 +267,7 @@ const UserManagement = () => {
         : "/default-avatar.png";
 
     return (
-        <Box>
+        <Box display="flex" flexDirection="column" sx={{ height: '100vh' }}>
             <AppBar position="static" color="default" elevation={1} sx={{ bgcolor: "#F6404F" }}>
                 <Toolbar sx={{ justifyContent: "space-between" }}>
                     <Box display="flex" alignItems="center">
@@ -286,10 +310,14 @@ const UserManagement = () => {
                     </Box>
                 </Toolbar>
             </AppBar>
-            <Box display="flex" height="93vh" bgcolor="#F8F9FA">
-                {sidebarOpen && <Sidebar user={{ name: userName, nip: user?.nip || "-", photo: userPhoto }} />}
-                <Box flex={1} p={3} mt={5}>
-                    <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
+            <Box sx={{ display: 'flex', flex: 1, minHeight: 0, height: 'calc(100vh - 64px)' }} bgcolor="#F8F9FA">
+                {sidebarOpen && (
+                    <Box sx={{ width: 270, height: 'calc(100vh - 64px)', overflow: 'auto' }}>
+                        <Sidebar user={{ name: userName, nip: user?.nip || "-", photo: userPhoto }} />
+                    </Box>
+                )}
+                <Box flex={1} p={3} overflow="auto">
+                    <Box display="flex" justifyContent="space-between" alignItems="center" mb={2} mt={5} >
                         <Typography variant="h5" fontWeight="bold">User Management</Typography>
                         <Button
                             onClick={() => setOpenAddDialog(true)}
@@ -329,68 +357,61 @@ const UserManagement = () => {
                                 </TableRow>
                             </TableHead>
                             <TableBody>
-                                {users
-                                    .filter((row) => row.role !== 0 && row.role.toLowerCase() !== "super admin")
-                                    .map((row, idx) => (
-                                        <TableRow key={idx}>
-                                            <TableCell>{row.nip}</TableCell>
-                                            <TableCell>{row.nama}</TableCell>
-                                            <TableCell>{row.email}</TableCell>
-                                            <TableCell>
-                                                {row.role
-                                                    ? row.role
-                                                        .split(" ")
-                                                        .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-                                                        .join(" ")
-                                                    : "-"}
-                                            </TableCell>
-                                            <TableCell>
-                                                <div style={{ display: "flex", alignItems: "center" }}>
-                                                    <span>{showPasswords[row.id] ? row.password : "********"}</span>
-                                                    <IconButton
-                                                        size="small"
-                                                        onClick={() => togglePassword(row.id)}
-                                                        style={{
-                                                            marginLeft: 4,
-                                                            padding: 4,
-                                                            position: "relative",
-                                                            top: showPasswords[row.id] ? "-1px" : "-4px"
-                                                        }}
-                                                    >
-                                                        <Visibility fontSize="small" />
-                                                    </IconButton>
-                                                </div>
-                                            </TableCell>
-                                            <TableCell align="center">
-                                                <IconButton size="small" color="#000" sx={{ mx: 0.5 }} onClick={() => handleEditUser(row)}>
-                                                    <EditOutlined fontSize="small" />
+                                {paginatedUsers.map((row, idx) => (
+                                    <TableRow key={idx}>
+                                        <TableCell>{row.nip}</TableCell>
+                                        <TableCell>{row.nama}</TableCell>
+                                        <TableCell>{row.email}</TableCell>
+                                        <TableCell>
+                                            {row.role
+                                                ? row.role
+                                                    .split(" ")
+                                                    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+                                                    .join(" ")
+                                                : "-"}
+                                        </TableCell>
+                                        <TableCell>
+                                            <div style={{ display: "flex", alignItems: "center" }}>
+                                                <span>{showPasswords[row.id] ? row.password : "********"}</span>
+                                                <IconButton
+                                                    size="small"
+                                                    onClick={() => togglePassword(row.id)}
+                                                    style={{
+                                                        marginLeft: 4,
+                                                        padding: 4,
+                                                        position: "relative",
+                                                        top: showPasswords[row.id] ? "-1px" : "-4px"
+                                                    }}
+                                                >
+                                                    <Visibility fontSize="small" />
                                                 </IconButton>
-                                                {user?.role === "super admin" && (
-                                                    <IconButton size="small" color="error" sx={{ mx: 0.5 }} onClick={() => handleOpenDeleteDialog(row)}>
-                                                        <Delete fontSize="small" />
-                                                    </IconButton>
-                                                )}
-                                            </TableCell>
-                                        </TableRow>
-                                    ))}
+                                            </div>
+                                        </TableCell>
+                                        <TableCell align="center">
+                                            <IconButton size="small" color="#000" sx={{ mx: 0.5 }} onClick={() => handleEditUser(row)}>
+                                                <EditOutlined fontSize="small" />
+                                            </IconButton>
+                                            {user?.role === "super admin" && (
+                                                <IconButton size="small" color="error" sx={{ mx: 0.5 }} onClick={() => handleOpenDeleteDialog(row)}>
+                                                    <Delete fontSize="small" />
+                                                </IconButton>
+                                            )}
+                                        </TableCell>
+                                    </TableRow>
+                                ))}
                             </TableBody>
                         </Table>
                     </TableContainer>
-
-                    <Box
-                        mt={20}
-                        display="flex"
-                        justifyContent="space-between"
-                        alignItems="center"
-                        flexWrap="wrap"
-                    >
+                    <Box mt={5} mb={1} display="flex" justifyContent="space-between" alignItems="center" flexWrap="wrap">
                         <Box ml={1} fontSize={14} color="#555">
-                            Halaman 1 Dari 50 Halaman
+                            Halaman {currentPage} dari {totalPages} Halaman
                         </Box>
-                        <Box sx={{ display: "flex", justifyContent: "center", mt: 2 }}>
+                        <Box sx={{ display: "flex", justifyContent: "center" }}>
                             <Button
                                 variant="outlined"
                                 size="small"
+                                disabled={currentPage === 1}
+                                onClick={() => setCurrentPage(currentPage - 1)}
                                 sx={{
                                     borderRadius: 2,
                                     mx: 0.5,
@@ -399,36 +420,45 @@ const UserManagement = () => {
                                     textTransform: "none",
                                     borderColor: "#ccc",
                                     color: "#000",
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    '&.Mui-disabled': {
+                                        borderColor: '#ccc',
+                                        color: '#000',
+                                    },
                                 }}
                             >
                                 Previous
                             </Button>
-                            {[1, 2, 3].map((page) => (
-                                <Button
-                                    key={page}
-                                    variant={page === 1 ? "contained" : "outlined"}
-                                    size="small"
-                                    sx={{
-                                        borderRadius: 2,
-                                        mx: 0.5,
-                                        minWidth: 40,
-                                        fontWeight: "bold",
-                                        textTransform: "none",
-                                        bgcolor: page === 1 ? "#000" : "#fff",
-                                        color: page === 1 ? "#fff" : "#000",
-                                        borderColor: "#ccc",
-                                        boxShadow: "none",
-                                        "&:hover": {
-                                            bgcolor: page === 1 ? "#000" : "#f0f0f0",
-                                        },
-                                    }}
-                                >
-                                    {page}
-                                </Button>
-                            ))}
+                            {[...Array(totalPages).keys()].map((_, idx) => {
+                                const page = idx + 1;
+                                return (
+                                    <Button
+                                        key={page}
+                                        variant={page === currentPage ? "contained" : "outlined"}
+                                        onClick={() => setCurrentPage(page)}
+                                        size="small"
+                                        sx={{
+                                            borderRadius: 2,
+                                            mx: 0.5,
+                                            minWidth: 40,
+                                            fontWeight: "bold",
+                                            textTransform: "none",
+                                            bgcolor: page === currentPage ? "#000" : "#fff",
+                                            color: page === currentPage ? "#fff" : "#000",
+                                            borderColor: "#ccc",
+                                        }}
+                                    >
+                                        {page}
+                                    </Button>
+                                );
+                            })}
                             <Button
                                 variant="outlined"
                                 size="small"
+                                disabled={currentPage === totalPages}
+                                onClick={() => setCurrentPage(currentPage + 1)}
                                 sx={{
                                     borderRadius: 2,
                                     mx: 0.5,
@@ -437,6 +467,13 @@ const UserManagement = () => {
                                     textTransform: "none",
                                     borderColor: "#ccc",
                                     color: "#000",
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    '&.Mui-disabled': {
+                                        borderColor: '#ccc',
+                                        color: '#000',
+                                    },
                                 }}
                             >
                                 Next
@@ -758,15 +795,31 @@ const UserManagement = () => {
                     <Typography>Apakah Anda yakin ingin menghapus user <strong>{userToDelete?.nama}</strong>?</Typography>
                 </DialogContent>
                 <DialogActions>
-                    <Button onClick={() => setDeleteDialogOpen(false)} variant="outlined">Batal</Button>
+                    <Button
+                        onClick={() => setDeleteDialogOpen(false)}
+                        variant="contained"
+                        disableElevation
+                        disableFocusRipple
+                        sx={{
+                            borderRadius: '8px',
+                            textTransform: 'none',
+                            bgcolor: '#212121',
+                            '&:hover': { bgcolor: '#000' },
+                        }}>
+                        Batal
+                    </Button>
                     <Button
                         onClick={() => {
                             handleDeleteUser(userToDelete.id);
                             setDeleteDialogOpen(false);
                         }}
                         variant="contained"
-                        color="error"
-                    >
+                        sx={{
+                            borderRadius: '8px',
+                            textTransform: 'none',
+                            bgcolor: '#212121',
+                            '&:hover': { bgcolor: '#000' },
+                        }}>
                         Hapus
                     </Button>
                 </DialogActions>
@@ -790,6 +843,36 @@ const UserManagement = () => {
                 <DialogActions sx={{ mr: 2, mb: 2, gap: 1 }}>
                     <Button onClick={() => setLogoutDialogOpen(false)} color="primary" variant="outlined">Batal</Button>
                     <Button onClick={handleSignOut} color="error" variant="contained">Logout</Button>
+                </DialogActions>
+            </Dialog>
+            <Dialog
+                open={alertDialog.open}
+                onClose={() => setAlertDialog({ ...alertDialog, open: false })}
+            >
+                <DialogTitle sx={{ fontWeight: 600 }}>{alertDialog.title}</DialogTitle>
+                <DialogContent>
+                    <Typography>{alertDialog.message}</Typography>
+                </DialogContent>
+                <DialogActions>
+                    <Button
+                        onClick={() => setAlertDialog({ ...alertDialog, open: false })}
+                        variant="contained"
+                        sx={{
+                            backgroundColor: "#1F1F1F",
+                            color: "#fff",
+                            fontWeight: "bold",
+                            borderRadius: "16px",
+                            px: 4,
+                            py: 1.5,
+                            textTransform: "none",
+                            boxShadow: "none",
+                            "&:hover": {
+                                backgroundColor: "#333333",
+                            },
+                        }}
+                    >
+                        OK
+                    </Button>
                 </DialogActions>
             </Dialog>
         </Box>

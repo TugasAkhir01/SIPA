@@ -10,8 +10,13 @@ import {
   FormControlLabel,
   IconButton,
   InputAdornment,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions
 } from "@mui/material";
 import { Visibility, VisibilityOff } from "@mui/icons-material";
+import ErrorOutlineIcon from "@mui/icons-material/ErrorOutline";
 import { useNavigate } from "react-router-dom";
 import ForgotPasswordDialog from "./ForgotPassword";
 
@@ -24,6 +29,8 @@ const LoginForm = () => {
   const [rememberMe, setRememberMe] = useState(false);
   const [error, setError] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [dialogMessage, setDialogMessage] = useState("");
 
   useEffect(() => {
     const rememberedId = localStorage.getItem("rememberedIdentifier");
@@ -49,7 +56,15 @@ const LoginForm = () => {
       const data = await response.json();
 
       if (!response.ok) {
-        setError(data.message || "Login gagal");
+        if (
+          data.message === "User not found" ||
+          data.message === "Invalid credentials"
+        ) {
+          setDialogMessage("NIM / NIP atau Password salah");
+        } else {
+          setDialogMessage(data.message || "Login gagal");
+        }
+        setDialogOpen(true);
         return;
       }
 
@@ -205,6 +220,46 @@ const LoginForm = () => {
         </Typography>
         {openForgot && <ForgotPasswordDialog onClose={() => setOpenForgot(false)} />}
       </Paper>
+      <Dialog
+        open={dialogOpen}
+        onClose={() => setDialogOpen(false)}
+        keepMounted={false}
+        PaperProps={{
+          sx: {
+            width: "360px",
+            maxWidth: "90vw",
+            minHeight: "200px",
+            borderRadius: 3,
+            p: 1.5,
+            display: "flex",
+            flexDirection: "column",
+            justifyContent: "space-between",
+          },
+        }}
+      >
+        <DialogTitle
+          sx={{
+            display: "flex",
+            alignItems: "center",
+            gap: 1,
+            fontWeight: "bold",
+            color: "error.main",
+          }}
+        >
+          <ErrorOutlineIcon color="error" />
+          Login Gagal
+        </DialogTitle>
+
+        <DialogContent>
+          <Typography>{dialogMessage}</Typography>
+        </DialogContent>
+
+        <DialogActions>
+          <Button onClick={() => setDialogOpen(false)} variant="contained" color="error">
+            OK
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Box>
   );
 };

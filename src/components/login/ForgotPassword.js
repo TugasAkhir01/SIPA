@@ -45,7 +45,9 @@ const ForgotPasswordDialog = ({ onClose }) => {
           }}
         />
         <a
-          href="https://wa.me/6282216669978"
+          href="https://wa.me/6282285265242"
+          // href="https://wa.me/6282216669978"
+          //+62 822-8526-5242
           target="_blank"
           rel="noopener noreferrer"
           style={{ textDecoration: "none" }}
@@ -67,7 +69,7 @@ const ForgotPasswordDialog = ({ onClose }) => {
             <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
               <InfoOutlinedIcon sx={{ fontSize: 20 }} />
               <Typography variant="body1" fontWeight={500}>
-                Helpdesk PuTI
+                Kontak Admin
               </Typography>
             </Box>
           </Button>

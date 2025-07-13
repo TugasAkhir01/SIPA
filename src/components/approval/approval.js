@@ -3,22 +3,23 @@ import {
     Box, Typography, AppBar, Toolbar, IconButton, InputBase, Paper,
     Select, MenuItem, Table, TableBody, TableCell, TableContainer,
     TableHead, TableRow, Button, Avatar, Menu, Dialog, DialogTitle,
-    DialogContent, DialogActions, ListItemIcon, OutlinedInput,
+    DialogContent, DialogActions, ListItemIcon, OutlinedInput, Tooltip
 } from "@mui/material";
-import { ArrowDropUp, ArrowDropDown, PictureAsPdfRounded, DescriptionRounded } from "@mui/icons-material";
+import { ArrowDropUp, ArrowDropDown, Delete, PictureAsPdfRounded, DescriptionRounded } from "@mui/icons-material";
 import { Person, Logout, Menu as MenuIcon, Search as SearchIcon, CameraAlt as CameraAltIcon } from "@mui/icons-material";
 import EditOutlined from '@mui/icons-material/EditOutlined';
 import UploadIcon from '@mui/icons-material/Upload';
 import DownloadIcon from '@mui/icons-material/Download';
 import DeleteIcon from '@mui/icons-material/Delete';
-import AddIcon from '@mui/icons-material/Add';
-import Sidebar from "../sidebar/Sidebar";
+import DoneIcon from '@mui/icons-material/Done';
+import CloseIcon from '@mui/icons-material/Close';
+import Sidebar from "../sidebar/Sidebar.js";
 import FileUpload from "./fileupload.js";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useTheme } from "@mui/material/styles";
 import { downloadExport } from "../../helpers/downloadExport";
 
-const DataManagement = () => {
+const Approval = () => {
     const navigate = useNavigate();
     const theme = useTheme();
     const [sidebarOpen, setSidebarOpen] = React.useState(true);
@@ -28,6 +29,29 @@ const DataManagement = () => {
     const [sortOrder, setSortOrder] = useState("asc");
     const [tableSortBy, setTableSortBy] = useState(null);
     const [tableSortOrder, setTableSortOrder] = useState("asc");
+    const [openConfirmDialog, setOpenConfirmDialog] = useState(false);
+    const [deleteId, setDeleteId] = useState(null);
+    const [alertDialog, setAlertDialog] = useState({
+        open: false,
+        title: '',
+        message: '',
+        onClose: null,
+    });
+
+    const showAlert = (title, message, onClose = null) => {
+        setAlertDialog({
+            open: true,
+            title,
+            message,
+            onClose
+        });
+    };
+
+    const [approvalDialog, setApprovalDialog] = useState({
+        open: false,
+        id: null,
+        status: '',
+    });
 
     const [anchorEl, setAnchorEl] = React.useState(null);
     const open = Boolean(anchorEl);
@@ -68,6 +92,7 @@ const DataManagement = () => {
         id_kasus: '',
         jenis_kasus: '',
         status: '',
+        status_approval: 'Pending',
         hasil_sidang: '',
         notulensi: '',
         foto: '',
@@ -88,7 +113,11 @@ const DataManagement = () => {
             if (!res.ok) throw new Error("Gagal ambil data");
 
             const data = await res.json();
-            setViolations(data);
+            setViolations(data.map(item => ({
+                ...item,
+                status_approval: item.status_approval || 'Pending',
+                type: item.type || 'New'
+            })));
         } catch (err) {
             console.error("❌ Gagal fetch:", err);
         }
@@ -104,39 +133,6 @@ const DataManagement = () => {
         return path.split('/').pop();
     };
 
-    const handleOpenAddDialog = () => {
-        const now = new Date();
-        const dd = String(now.getDate()).padStart(2, '0');
-        const mm = String(now.getMonth() + 1).padStart(2, '0');
-        const yy = String(now.getFullYear()).slice(-2);
-        const todayStr = `${dd}${mm}${yy}`;
-
-        const casesToday = violations.filter(v =>
-            v.id_kasus && v.id_kasus.startsWith(todayStr)
-        );
-        const nextIndex = String(casesToday.length + 1).padStart(2, '0');
-        const generatedIdKasus = `${todayStr}${nextIndex}`;
-
-        setForm({
-            nama: '',
-            nim: '',
-            jurusan: '',
-            semester: '',
-            id_kasus: generatedIdKasus,
-            jenis_kasus: '',
-            status: '',
-            hasil_sidang: '',
-            notulensi: '',
-            foto: '',
-            deskripsi: '',
-            status_approval: 'Pending',
-        });
-
-        setEditMode(false);
-        setEditId(null);
-        setOpenAddDialog(true);
-    };
-
     const handleSave = async () => {
         if (!token) {
             console.warn("❌ Token tidak ada");
@@ -145,7 +141,7 @@ const DataManagement = () => {
 
         try {
             if (!form.nama || !form.nim || !form.jurusan || !form.id_kasus) {
-                alert("Mohon lengkapi semua data!");
+                showAlert("Form Tidak Lengkap", "Mohon lengkapi semua data!");
                 return;
             }
 
@@ -161,12 +157,14 @@ const DataManagement = () => {
                 jenis_kasus: form.jenis_kasus,
                 status: form.status,
                 deskripsi: form.deskripsi,
+                status_approval: form.status_approval || 'Pending',
+                type: editMode ? 'Update' : 'New'
             };
 
             const formData = new FormData();
 
             if (!editMode) {
-                // Untuk tambah baru, kirim data mahasiswa juga               
+                // Untuk tambah baru, kirim data mahasiswa juga
                 formData.append("mahasiswa", JSON.stringify(mahasiswa));
             }
 
@@ -196,14 +194,13 @@ const DataManagement = () => {
 
             if (!res.ok) throw new Error("Gagal simpan pelanggaran");
 
-            alert(editMode ? "Data berhasil diperbarui!" : "Data berhasil ditambahkan!");
+            showAlert("Berhasil", editMode ? "Data berhasil diperbarui!" : "Data berhasil ditambahkan!");
             await fetchData();
             setOpenAddDialog(false);
             setForm({
                 nama: '',
                 nim: '',
                 jurusan: '',
-                semester: '',
                 id_kasus: '',
                 jenis_kasus: '',
                 status: '',
@@ -216,7 +213,7 @@ const DataManagement = () => {
             setEditId(null);
         } catch (err) {
             console.error("Gagal simpan data:", err);
-            alert("Terjadi kesalahan saat menyimpan data.");
+            showAlert("Gagal", "Terjadi kesalahan saat menyimpan data.");
         }
     };
 
@@ -242,10 +239,10 @@ const DataManagement = () => {
                 nama: data.mahasiswa?.nama || data.nama || "",
                 nim: data.mahasiswa?.nim || data.nim || "",
                 jurusan: data.mahasiswa?.jurusan || data.jurusan || "",
-                semester: data.mahasiswa?.semester || data.semester || "",
                 id_kasus: data.pelanggaran?.id_kasus || data.id_kasus || "",
                 jenis_kasus: data.pelanggaran?.jenis_kasus || data.jenis_kasus || "",
                 status: data.pelanggaran?.status || data.status || "",
+                status_approval: data.pelanggaran?.status_approval || data.status_approval || "Pending",
                 hasil_sidang: getFileNameFromPath(data.pelanggaran?.hasil_sidang || data.hasil_sidang),
                 notulensi: getFileNameFromPath(data.pelanggaran?.notulensi || data.notulensi),
                 foto: getFileNameFromPath(data.pelanggaran?.foto || data.foto),
@@ -257,10 +254,65 @@ const DataManagement = () => {
             setOpenAddDialog(true);
         } catch (err) {
             console.error("❌ Gagal ambil data by ID:", err);
-            alert("Gagal mengambil data pelanggaran.");
+            showAlert("Gagal", "Gagal mengambil data pelanggaran.");
         }
     }, [token]);
 
+    const handleDelete = async () => {
+        if (!deleteId) return;
+
+        try {
+            const res = await fetch(`http://localhost:3001/api/violations/${deleteId}`, {
+                method: 'DELETE',
+                headers: { Authorization: `Bearer ${token}` }
+            });
+
+            if (!res.ok) throw new Error('Gagal menghapus data');
+
+            showAlert("Berhasil", "Data berhasil dihapus");
+            await fetchData();
+            setOpenDetailDialog(false);
+        } catch (err) {
+            console.error('❌ Gagal hapus data:', err);
+            showAlert("Gagal", "Gagal menghapus data");
+        } finally {
+            setOpenConfirmDialog(false);
+            setDeleteId(null);
+        }
+    };
+
+    const handleDeleteConfirm = (id) => {
+        setDeleteId(id);
+        setOpenConfirmDialog(true);
+    };
+
+    const updateStatusApproval = async (id, status) => {
+        try {
+            const res = await fetch(`http://localhost:3001/api/violations/${id}/status`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    Authorization: `Bearer ${token}`
+                },
+                body: JSON.stringify({ status_approval: status })
+            });
+
+            if (!res.ok) throw new Error("Gagal update status approval");
+
+            await fetchData();
+        } catch (err) {
+            console.error("❌ Gagal update status approval:", err);
+            showAlert("Gagal", "Gagal memperbarui status");
+        }
+    };
+
+    const handleChangeStatus = (status) => {
+        setApprovalDialog({
+            open: true,
+            id: selectedCase.id,
+            status,
+        });
+    };
 
     useEffect(() => {
         if (editData) {
@@ -319,12 +371,9 @@ const DataManagement = () => {
         { label: "NIM", key: "nim" },
         { label: "Prodi", key: "jurusan" },
         { label: "ID Kasus", key: "id_kasus" },
-        { label: "Jenis Kasus", key: "jenis_kasus" },
-        { label: "Status Kasus", key: "status" },
-        { label: "Approval", key: "status_approval" },
-        { label: "Hasil Sidang", key: null },
-        { label: "Notulensi", key: null },
-        { label: "Edit", key: null }
+        { label: "Status", key: "status_approval" },
+        { label: "Data Type", key: "type" },
+        { label: "Aksi", key: null },
     ];
 
     const handleRowClick = (row) => {
@@ -407,8 +456,8 @@ const DataManagement = () => {
                                         nim: "NIM",
                                         jurusan: "Prodi",
                                         id_kasus: "ID Kasus",
-                                        jenis_kasus: "Jenis Kasus",
                                         status: "Status",
+                                        type: "Data Type"
                                     };
                                     return labelMap[sortBy] || "Urutkan";
                                 }}
@@ -424,8 +473,8 @@ const DataManagement = () => {
                                     { label: "NIM", value: "nim" },
                                     { label: "Prodi", value: "jurusan" },
                                     { label: "ID Kasus", value: "id_kasus" },
-                                    { label: "Jenis Kasus", value: "jenis_kasus" },
                                     { label: "Status", value: "status" },
+                                    { label: "Data Type", value: "type" }
                                 ].map(({ label, value }) => (
                                     <MenuItem
                                         key={value}
@@ -444,23 +493,6 @@ const DataManagement = () => {
                                 ))}
                             </Select>
                         </Box>
-                        <Button
-                            variant="contained"
-                            startIcon={<AddIcon />}
-                            onClick={handleOpenAddDialog}
-                            sx={{
-                                textTransform: 'none',
-                                bgcolor: '#212121',
-                                color: '#fff',
-                                '&:hover': {
-                                    bgcolor: '#000',
-                                },
-                                borderRadius: 2,
-                                height: 40,
-                            }}
-                        >
-                            Add New
-                        </Button>
                     </Box>
                     <TableContainer
                         component={Paper}
@@ -480,6 +512,7 @@ const DataManagement = () => {
                                         return (
                                             <TableCell
                                                 key={i}
+                                                align={label === "Aksi" ? "center" : "left"}
                                                 onClick={() => {
                                                     if (!key) return;
                                                     if (isActive) {
@@ -497,34 +530,42 @@ const DataManagement = () => {
                                                 }}
                                             >
 
-                                                <Box display="flex" alignItems="center">
-                                                    {label}
-                                                    {key && (
-                                                        <Box
-                                                            display="flex"
-                                                            flexDirection="column"
-                                                            alignItems="center"
-                                                            justifyContent="center"
-                                                            ml={0.5}
-                                                            sx={{ lineHeight: 1 }}
-                                                        >
-                                                            <ArrowDropUp
-                                                                fontSize="medium"
-                                                                sx={{
-                                                                    color: isActive && tableSortOrder === "asc" ? "text.primary" : "#ccc",
-                                                                    position: "relative",
-                                                                    top: "6px",
-                                                                }}
-                                                            />
-                                                            <ArrowDropDown
-                                                                fontSize="medium"
-                                                                sx={{
-                                                                    color: isActive && tableSortOrder === "desc" ? "text.primary" : "#ccc",
-                                                                    position: "relative",
-                                                                    top: "-7px",
-                                                                    mt: "-2px",
-                                                                }}
-                                                            />
+                                                <Box display="flex" alignItems="center" justifyContent={label === "Aksi" ? "center" : "flex-start"}>
+                                                    {label === "Aksi" ? (
+                                                        <Box width="100%" textAlign="center">
+                                                            {label}
+                                                        </Box>
+                                                    ) : (
+                                                        <Box display="flex" alignItems="center">
+                                                            {label}
+                                                            {key && (
+                                                                <Box
+                                                                    display="flex"
+                                                                    flexDirection="column"
+                                                                    alignItems="center"
+                                                                    justifyContent="center"
+                                                                    ml={0.5}
+                                                                    sx={{ lineHeight: 1 }}
+                                                                >
+                                                                    <ArrowDropUp
+                                                                        fontSize="medium"
+                                                                        sx={{
+                                                                            color: isActive && tableSortOrder === "asc" ? "text.primary" : "#ccc",
+                                                                            position: "relative",
+                                                                            top: "6px",
+                                                                        }}
+                                                                    />
+                                                                    <ArrowDropDown
+                                                                        fontSize="medium"
+                                                                        sx={{
+                                                                            color: isActive && tableSortOrder === "desc" ? "text.primary" : "#ccc",
+                                                                            position: "relative",
+                                                                            top: "-7px",
+                                                                            mt: "-2px",
+                                                                        }}
+                                                                    />
+                                                                </Box>
+                                                            )}
                                                         </Box>
                                                     )}
                                                 </Box>
@@ -535,46 +576,12 @@ const DataManagement = () => {
                             </TableHead>
                             <TableBody>
                                 {paginatedViolations.map((row, index) => (
-                                    <TableRow key={row.id} onClick={(e) => {
-                                        const isInExcludedColumn = e.target.closest('a, button'); if (isInExcludedColumn) return;
-                                        handleRowClick(row);
-                                    }} hover sx={{ cursor: 'pointer' }}>
+                                    <TableRow key={row.id} onClick={() => handleRowClick(row)} hover sx={{ cursor: 'pointer' }}>
                                         <TableCell>{(currentPage - 1) * rowsPerPage + index + 1}</TableCell>
                                         <TableCell>{row.nama}</TableCell>
                                         <TableCell>{row.nim}</TableCell>
                                         <TableCell>{row.jurusan}</TableCell>
                                         <TableCell>{row.id_kasus}</TableCell>
-                                        <TableCell>{row.jenis_kasus}</TableCell>
-                                        <TableCell>
-                                            <Button
-                                                size="small"
-                                                sx={{
-                                                    bgcolor:
-                                                        row.status === 3
-                                                            ? "#28A745"
-                                                            : row.status === 4
-                                                                ? "#F6404F"
-                                                                : row.status === 2
-                                                                    ? "#FFC107"
-                                                                    : "#DEE2E6",
-                                                    color:
-                                                        row.status === 1 || row.status === 2 ? "#000" : "#fff",
-                                                    borderRadius: "50px",
-                                                    px: 2,
-                                                    fontWeight: 500,
-                                                    fontSize: 13,
-                                                    pointerEvents: 'none',
-                                                }}
-                                            >
-                                                {row.status === 3
-                                                    ? "Selesai"
-                                                    : row.status === 4
-                                                        ? "Dibatalkan"
-                                                        : row.status === 2
-                                                            ? "Tertunda"
-                                                            : "Berjalan"}
-                                            </Button>
-                                        </TableCell>
                                         <TableCell>
                                             <Button
                                                 size="small"
@@ -605,54 +612,33 @@ const DataManagement = () => {
                                                 {row.status_approval || 'Pending'}
                                             </Button>
                                         </TableCell>
+                                        <TableCell>{row.type}</TableCell>
                                         <TableCell>
-                                            <Button
-                                                onClick={() =>
-                                                    downloadExport({ id: row.id, type: 'hasil_sidang', nim: row.nim, token })
-                                                }
-                                                variant="contained"
-                                                startIcon={<PictureAsPdfRounded />}
-                                                sx={{
-                                                    bgcolor: "#F1F1F1",
-                                                    color: "#2C2C2C",
-                                                    textTransform: "none",
-                                                    borderRadius: "12px",
-                                                    fontWeight: 500,
-                                                    boxShadow: "none",
-                                                    px: 2,
-                                                    textDecoration: "none",
-                                                }}
-                                                disabled={!row.hasil_sidang}
-                                            >
-                                                view
-                                            </Button>
-                                        </TableCell>
-                                        <TableCell>
-                                            <Button
-                                                onClick={() =>
-                                                    downloadExport({ id: row.id, type: 'notulensi', nim: row.nim, token })
-                                                }
-                                                variant="contained"
-                                                startIcon={<DescriptionRounded />}
-                                                sx={{
-                                                    bgcolor: "#F1F1F1",
-                                                    color: "#2C2C2C",
-                                                    textTransform: "none",
-                                                    borderRadius: "12px",
-                                                    fontWeight: 500,
-                                                    boxShadow: "none",
-                                                    px: 2,
-                                                    textDecoration: "none",
-                                                }}
-                                                disabled={!row.notulensi}
-                                            >
-                                                View
-                                            </Button>
-                                        </TableCell>
-                                        <TableCell>
-                                            <IconButton onClick={(e) => { e.stopPropagation(); handleEdit(row) }}>
-                                                <EditOutlined fontSize="small" />
-                                            </IconButton>
+                                            <Box display="flex" alignItems="center" justifyContent="center" gap={1}>
+                                                <IconButton
+                                                    size="small"
+                                                    color="success"
+                                                    disabled={row.status_approval === 'Approved' || row.status_approval === 'Rejected'}
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        updateStatusApproval(row.id, 'Approved');
+                                                    }}
+                                                >
+                                                    <DoneIcon sx={{ color: row.status_approval === 'Approved' || row.status_approval === 'Rejected' ? '#ccc' : 'green' }} />
+                                                </IconButton>
+
+                                                <IconButton
+                                                    size="small"
+                                                    color="error"
+                                                    disabled={row.status_approval === 'Approved' || row.status_approval === 'Rejected'}
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        updateStatusApproval(row.id, 'Rejected');
+                                                    }}
+                                                >
+                                                    <CloseIcon sx={{ color: row.status_approval === 'Approved' || row.status_approval === 'Rejected' ? '#ccc' : 'red' }} />
+                                                </IconButton>
+                                            </Box>
                                         </TableCell>
                                     </TableRow>
                                 ))}
@@ -802,7 +788,7 @@ const DataManagement = () => {
 
                                     const token = sessionStorage.getItem('token') || localStorage.getItem('token');
                                     if (!token) {
-                                        alert('Token tidak ditemukan. Silakan login ulang.');
+                                        showAlert("Token Tidak Ada", "Silakan login ulang.");
                                         return;
                                     }
 
@@ -827,7 +813,7 @@ const DataManagement = () => {
                                         setForm((prev) => ({ ...prev, foto: data.file?.name || '' }));
                                     } catch (err) {
                                         console.error('Upload gagal:', err);
-                                        alert('Gagal upload foto.');
+                                        showAlert("Gagal", "Gagal upload foto.");
                                     }
                                 }}
                             />
@@ -918,9 +904,9 @@ const DataManagement = () => {
                             onChange={(e) => setForm(prev => ({ ...prev, deskripsi: e.target.value }))}
                         />
                     </Box>
-                    <Box mb={4}>
+                    <Box display="grid" gridTemplateColumns="1fr 1fr" gap={2} mb={4}>
                         <Box>
-                            <Typography fontSize={14} fontWeight={500} mb={0.5}>Status</Typography>
+                            <Typography fontSize={14} fontWeight={500} mb={0.5}>Status Kasus</Typography>
                             <Select
                                 fullWidth
                                 displayEmpty
@@ -933,6 +919,20 @@ const DataManagement = () => {
                                 <MenuItem value={2}>Tertunda</MenuItem>
                                 <MenuItem value={3}>Selesai</MenuItem>
                                 <MenuItem value={4}>Dibatalkan</MenuItem>
+                            </Select>
+                        </Box>
+                        <Box>
+                            <Typography fontSize={14} fontWeight={500} mb={0.5}>Status Approval</Typography>
+                            <Select
+                                fullWidth
+                                displayEmpty
+                                size="small"
+                                value={form.status_approval}
+                                onChange={(e) => setForm(prev => ({ ...prev, status_approval: e.target.value }))}
+                            >
+                                <MenuItem value="Pending">Pending</MenuItem>
+                                <MenuItem value="Approved">Approval</MenuItem>
+                                <MenuItem value="Rejected">Rejected</MenuItem>
                             </Select>
                         </Box>
                     </Box>
@@ -1146,13 +1146,14 @@ const DataManagement = () => {
                                 p={3}
                             >
                                 <Typography fontWeight={600} mb={2}>Tentang Kasus</Typography>
+
                                 <Box
                                     display="grid"
                                     gridTemplateColumns="1fr 1fr"
                                     rowGap={2}
                                     columnGap={4}
                                     alignItems="center"
-                                    mb={2}
+                                    mb={3}
                                 >
                                     <Box>
                                         <Typography variant="caption" color="text.secondary">Nama Kasus</Typography>
@@ -1163,35 +1164,88 @@ const DataManagement = () => {
                                         <Typography fontWeight={500}>{selectedCase.id_kasus}</Typography>
                                     </Box>
                                 </Box>
-                                <Box mt={2}>
-                                    <Typography variant="caption" color="text.secondary">Status Kasus</Typography><br />
-                                    <Button
-                                        size="small"
-                                        sx={{
-                                            bgcolor: selectedCase.status === 3
-                                                ? "#28A745"
+                                <Box
+                                    display="grid"
+                                    gridTemplateColumns="1fr 1fr"
+                                    rowGap={2}
+                                    columnGap={4}
+                                    alignItems="start"
+                                >
+                                    <Box display="flex" flexDirection="column" alignItems="flex-start">
+                                        <Typography variant="caption" color="text.secondary">Status</Typography>
+                                        <Button
+                                            size="small"
+                                            sx={{
+                                                textTransform: 'none',
+                                                borderRadius: '999px',
+                                                fontWeight: 600,
+                                                fontSize: '13px',
+                                                px: 2.5,
+                                                py: 0.5,
+                                                mt: 0.5,
+                                                bgcolor:
+                                                    selectedCase.status === 3
+                                                        ? '#D1FAE5'
+                                                        : selectedCase.status === 4
+                                                            ? '#FEE2E2'
+                                                            : selectedCase.status === 2
+                                                                ? '#FEF9C3'
+                                                                : '#D1FAE5',
+                                                color:
+                                                    selectedCase.status === 3
+                                                        ? '#065F46'
+                                                        : selectedCase.status === 4
+                                                            ? '#991B1B'
+                                                            : selectedCase.status === 2
+                                                                ? '#92400E'
+                                                                : '#065F46',
+                                                pointerEvents: 'none',
+                                            }}
+                                        >
+                                            {selectedCase.status === 3
+                                                ? "Selesai"
                                                 : selectedCase.status === 4
-                                                    ? "#F6404F"
+                                                    ? "Dibatalkan"
                                                     : selectedCase.status === 2
-                                                        ? "#FFC107"
-                                                        : "#198754",
-                                            color: '#fff',
-                                            borderRadius: '999px',
-                                            fontSize: 13,
-                                            fontWeight: 500,
-                                            px: 3,
-                                            mt: 0.5,
-                                            pointerEvents: 'none',
-                                        }}
-                                    >
-                                        {selectedCase.status === 3
-                                            ? "Selesai"
-                                            : selectedCase.status === 4
-                                                ? "Dibatalkan"
-                                                : selectedCase.status === 2
-                                                    ? "Tertunda"
-                                                    : "Berjalan"}
-                                    </Button>
+                                                        ? "Tertunda"
+                                                        : "Berjalan"}
+                                        </Button>
+                                    </Box>
+
+                                    <Box display="flex" flexDirection="column" alignItems="flex-start">
+                                        <Typography variant="caption" color="text.secondary">Status Approval</Typography>
+                                        <Button
+                                            size="small"
+                                            sx={{
+                                                textTransform: 'none',
+                                                borderRadius: '999px',
+                                                fontWeight: 600,
+                                                fontSize: '13px',
+                                                px: 2.5,
+                                                py: 0.5,
+                                                mt: 0.5,
+                                                bgcolor:
+                                                    selectedCase.status_approval === 'Approved'
+                                                        ? '#D1FAE5'
+                                                        : selectedCase.status_approval === 'Rejected'
+                                                            ? '#FEE2E2'
+                                                            : '#FEF9C3',
+                                                color:
+                                                    selectedCase.status_approval === 'Approved'
+                                                        ? '#065F46'
+                                                        : selectedCase.status_approval === 'Rejected'
+                                                            ? '#991B1B'
+                                                            : '#92400E',
+                                                pointerEvents: 'none',
+                                            }}
+                                        >
+                                            {selectedCase.status_approval === 'Approved'
+                                                ? 'Diterima'
+                                                : selectedCase.status_approval === 'Rejected'
+                                                    ? 'Ditolak'
+                                                    : 'Menunggu'}
+                                        </Button>
+                                    </Box>
                                 </Box>
                             </Box>
                             <Box
@@ -1272,37 +1326,213 @@ const DataManagement = () => {
                         </Box>
                     )}
                 </DialogContent>
-                <DialogActions sx={{ justifyContent: 'flex-start', px: 3, pb: 2 }}>
-                    {(user?.role === 'admin' || user?.role === 'super admin') && (
+                <DialogActions sx={{ justifyContent: 'space-between', px: 3, pb: 2 }}>
+                    <Box>
                         <Button
-                            startIcon={<EditOutlined />}
+                            onClick={() => setOpenDetailDialog(false)}
                             variant="contained"
                             sx={{
                                 borderRadius: '8px',
                                 textTransform: 'none',
                                 bgcolor: '#212121',
                                 '&:hover': { bgcolor: '#000' },
-                                mr: 1
-                            }}
-                            onClick={() => {
-                                setOpenDetailDialog(false);
-                                handleEdit(selectedCase);
+                                mr: 2,
                             }}
                         >
-                            Edit Case
+                            Back
                         </Button>
-                    )}
+                        {(user?.role === 'admin' || user?.role === 'super admin') && (
+                            <Button
+                                startIcon={<EditOutlined />}
+                                variant="contained"
+                                sx={{
+                                    borderRadius: '8px',
+                                    textTransform: 'none',
+                                    bgcolor: '#212121',
+                                    '&:hover': { bgcolor: '#000' },
+                                }}
+                                onClick={() => {
+                                    setOpenDetailDialog(false);
+                                    handleEdit(selectedCase);
+                                }}
+                            >
+                                Edit Case
+                            </Button>
+                        )}
+                    </Box>
+                    <Box>
+                        <Tooltip title="Delete">
+                            <IconButton
+                                onClick={() => handleDeleteConfirm(selectedCase.id)}
+                                sx={{
+                                    color: '#212121',
+                                    padding: 0,
+                                    mr: 1.5
+                                }}
+                            >
+                                <Delete sx={{ fontSize: 36 }} />
+                            </IconButton>
+                        </Tooltip>
+                        <Button
+                            onClick={() => handleChangeStatus('Approved')}
+                            variant="contained"
+                            sx={{
+                                borderRadius: '8px',
+                                textTransform: 'none',
+                                bgcolor: '#212121',
+                                '&:hover': { bgcolor: '#000' },
+                                mr: 2
+                            }}
+                        >
+                            Approve
+                        </Button>
+                        <Button
+                            onClick={() => handleChangeStatus('Rejected')}
+                            variant="contained"
+                            sx={{
+                                borderRadius: '8px',
+                                textTransform: 'none',
+                                bgcolor: '#212121',
+                                '&:hover': { bgcolor: '#000' },
+                            }}
+                        >
+                            Decline
+                        </Button>
+                    </Box>
+                </DialogActions>
+            </Dialog>
+            <Dialog
+                open={openConfirmDialog}
+                onClose={() => setOpenConfirmDialog(false)}
+                sx={{ '& .MuiDialog-paper': { borderRadius: '16px', width: 330, minHeight: 300 } }}
+            >
+                <DialogTitle sx={{ textAlign: "center", paddingBottom: 0 }}>
+                    <Box sx={{ mb: 1, mt: 2 }}>
+                        <DeleteIcon sx={{ color: "error.main", fontSize: "60px" }} />
+                    </Box>
+                    <Typography variant="h6" component="span" fontWeight="bold">
+                        Konfirmasi Hapus
+                    </Typography>
+                </DialogTitle>
+                <DialogContent sx={{ textAlign: "center" }}>
+                    <Typography variant="body2">
+                        Yakin mau menghapus data ini? Tindakan ini tidak dapat dibatalkan.
+                    </Typography>
+                </DialogContent>
+                <DialogActions sx={{ mr: 2, mb: 2, gap: 1 }}>
+                    <Button onClick={() => setOpenConfirmDialog(false)} variant="contained" sx={{
+                        borderRadius: '8px',
+                        textTransform: 'none',
+                        bgcolor: '#212121',
+                        '&:hover': { bgcolor: '#000' },
+                        mr: -0.5
+                    }}>
+                        Batal
+                    </Button>
+                    <Button onClick={handleDelete} variant="contained" sx={{
+                        borderRadius: '8px',
+                        textTransform: 'none',
+                        bgcolor: '#212121',
+                        '&:hover': { bgcolor: '#000' },
+                    }}>
+                        Hapus
+                    </Button>
+                </DialogActions>
+            </Dialog>
+            <Dialog
+                open={alertDialog.open}
+                onClose={() => {
+                    setAlertDialog({ ...alertDialog, open: false });
+                    if (typeof alertDialog.onClose === 'function') alertDialog.onClose();
+                }}
+                sx={{ '& .MuiDialog-paper': { borderRadius: '16px', width: 330, minHeight: 110 } }}
+            >
+                <DialogTitle sx={{ textAlign: "center", paddingBottom: 1 }}>
+                    <Typography variant="h6" fontWeight="bold">
+                        {alertDialog.title}
+                    </Typography>
+                </DialogTitle>
+                <DialogContent sx={{ textAlign: "center", mt: 1 }}>
+                    <Typography variant="body2">{alertDialog.message}</Typography>
+                </DialogContent>
+                <DialogActions sx={{ justifyContent: "center", pb: 2 }}>
                     <Button
-                        onClick={() => setOpenDetailDialog(false)}
+                        variant="contained"
+                        onClick={() => {
+                            setAlertDialog({ ...alertDialog, open: false });
+                            if (typeof alertDialog.onClose === 'function') alertDialog.onClose();
+                        }}
+                        sx={{
+                            borderRadius: '8px',
+                            textTransform: 'none',
+                            bgcolor: '#212121',
+                            '&:hover': { bgcolor: '#000' },
+                            mr: 1
+                        }}>
+                        OK
+                    </Button>
+                </DialogActions>
+            </Dialog>
+            <Dialog
+                open={approvalDialog.open}
+                onClose={() => setApprovalDialog({ open: false, id: null, status: '' })}
+                sx={{ '& .MuiDialog-paper': { borderRadius: '16px', width: 360, minHeight: 200 } }}
+            >
+                <DialogTitle sx={{ textAlign: "center" }}>
+                    <Typography variant="h6" fontWeight="bold" mt={1}>
+                        {approvalDialog.status === 'Approved' ? 'Konfirmasi Approve' : 'Konfirmasi Reject'}
+                    </Typography>
+                </DialogTitle>
+                <DialogContent sx={{ textAlign: "center" }}>
+                    <Typography variant="body2">
+                        Apakah Anda yakin ingin {approvalDialog.status === 'Approved' ? 'Approve' : 'Reject'} kasus ini?
+                    </Typography>
+                </DialogContent>
+                <DialogActions sx={{ justifyContent: 'center', mb: 2 }}>
+                    <Button
+                        onClick={() => setApprovalDialog({ open: false, id: null, status: '' })}
                         variant="contained"
                         sx={{
                             borderRadius: '8px',
                             textTransform: 'none',
                             bgcolor: '#212121',
-                            '&:hover': { bgcolor: '#000' }
+                            '&:hover': { bgcolor: '#000' },
+                            mr: 1
+                        }}>
+                        Batal
+                    </Button>
+                    <Button
+                        onClick={async () => {
+                            try {
+                                const res = await fetch(`http://localhost:3001/api/violations/${approvalDialog.id}/status`, {
+                                    method: 'PUT',
+                                    headers: {
+                                        'Content-Type': 'application/json',
+                                        Authorization: `Bearer ${token}`
+                                    },
+                                    body: JSON.stringify({ status_approval: approvalDialog.status })
+                                });
+
+                                if (!res.ok) throw new Error();
+
+                                setApprovalDialog({ open: false, id: null, status: '' });
+                                await fetchData();
+                                setOpenDetailDialog(false);
+                                showAlert("Berhasil", `Kasus berhasil di-${approvalDialog.status === 'Approved' ? 'approve' : 'reject'}.`);
+                            } catch (err) {
+                                console.error("❌ Gagal update status approval:", err);
+                                setApprovalDialog({ open: false, id: null, status: '' });
+                                showAlert("Gagal", "Gagal memperbarui status.");
+                            }
                         }}
-                    >
-                        Back
+                        variant="contained"
+                        sx={{
+                            borderRadius: '8px',
+                            textTransform: 'none',
+                            bgcolor: '#212121',
+                            '&:hover': { bgcolor: '#000' },
+                        }}>
+                        {approvalDialog.status === 'Approved' ? 'Approve' : 'Reject'}
                     </Button>
                 </DialogActions>
             </Dialog>
@@ -1310,4 +1540,4 @@ const DataManagement = () => {
     );
 };
 
-export default DataManagement;
+export default Approval;

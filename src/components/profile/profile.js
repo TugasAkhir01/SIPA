@@ -11,7 +11,7 @@ import {
 import { useNavigate } from "react-router-dom";
 import { useTheme } from "@mui/material/styles";
 import Sidebar from "../sidebar/Sidebar";
-import CheckCircleIcon from '@mui/icons-material/CheckCircle';
+// import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import axios from "axios";
 
 const Profile = () => {
@@ -98,7 +98,7 @@ const Profile = () => {
         str.replace(/\b\w/g, (char) => char.toUpperCase());
 
     return (
-        <Box minHeight="100vh" display="flex" flexDirection="column">
+        <Box display="flex" flexDirection="column" sx={{ height: '100vh' }}>
             {console.log("finalUser.photo", finalUser?.photo)}
             <AppBar position="static" color="default" elevation={1} sx={{ bgcolor: "#F6404F" }}>
                 <Toolbar sx={{ justifyContent: "space-between" }}>
@@ -125,7 +125,7 @@ const Profile = () => {
                 </Toolbar>
             </AppBar>
 
-            <Box display="flex" height="93vh" bgcolor="#F8F9FA">
+            <Box sx={{ display: 'flex', flex: 1, minHeight: 0, height: 'calc(100vh - 64px)' }} bgcolor="#F8F9FA">
                 {sidebarOpen && <Sidebar user={{ name: userName, nip: finalUser?.nip || "-", photo: userPhoto }} />}
                 <Box flexGrow={1} bgcolor="#f5f5f5" p={3} sx={{ overflowY: "scroll", scrollbarWidth: "none", "&::-webkit-scrollbar": { display: "none" } }}>
                     <Paper elevation={2} sx={{ p: 3 }}>
@@ -284,10 +284,10 @@ const Profile = () => {
                     </Button>
                 </DialogActions>
             </Dialog>
-            <Dialog open={successOpen} onClose={() => setSuccessOpen(false)} maxWidth="xs" fullWidth PaperProps={{ sx: { borderRadius: '20px' } }}>
+            <Dialog open={successOpen} onClose={() => setSuccessOpen(false)} maxWidth="xs" fullWidth PaperProps={{ sx: { borderRadius: '10px' } }}>
                 <DialogContent sx={{ textAlign: "center", py: 2.5, }}>
-                    <CheckCircleIcon sx={{ fontSize: 130, color: "green", mb: 0.5 }} />
-                    <Typography variant="h6" fontWeight="bold" gutterBottom>
+                    {/* <CheckCircleIcon sx={{ fontSize: 130, color: "green", mb: 0.5 }} /> */}
+                    <Typography variant="h6" fontWeight="bold" gutterBottom mt={3}>
                         Edit Success!
                     </Typography>
                     <Typography variant="body2" color="textSecondary" gutterBottom>
@@ -301,8 +301,8 @@ const Profile = () => {
                             backgroundColor: "#1F1F1F",
                             color: "#fff",
                             textTransform: "none",
-                            px: 4,
-                            py: 1.5,
+                            px: 3,
+                            py: 1,
                             borderRadius: "10px",
                             float: "right",
                             "&:hover": {
