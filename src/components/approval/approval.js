@@ -31,6 +31,8 @@ const Approval = () => {
     const [tableSortOrder, setTableSortOrder] = useState("asc");
     const [openConfirmDialog, setOpenConfirmDialog] = useState(false);
     const [deleteId, setDeleteId] = useState(null);
+    const [openSuccessDialog, setOpenSuccessDialog] = useState(false);
+    const [successMessage, setSuccessMessage] = useState('');
     const [alertDialog, setAlertDialog] = useState({
         open: false,
         title: '',
@@ -82,6 +84,7 @@ const Approval = () => {
     const [selectedCase, setSelectedCase] = useState(null);
     const location = useLocation();
     const editData = location.state?.editData;
+    const [errors, setErrors] = useState({});
 
     const [violations, setViolations] = React.useState([]);
     const [form, setForm] = React.useState({
@@ -133,6 +136,25 @@ const Approval = () => {
         return path.split('/').pop();
     };
 
+    const validateForm = () => {
+        const newErrors = {};
+
+        if (!form.nama.trim()) newErrors.nama = "* Nama tidak boleh kosong";
+        if (!form.nim.trim()) newErrors.nim = "* NIM tidak boleh kosong";
+        if (!form.jurusan.trim()) newErrors.jurusan = "* Jurusan tidak boleh kosong";
+        if (!form.semester) newErrors.semester = "* Semester tidak boleh kosong";
+        if (!form.id_kasus.trim()) newErrors.id_kasus = "* ID Kasus tidak boleh kosong";
+        if (!form.jenis_kasus.trim()) newErrors.jenis_kasus = "* Nama Kasus tidak boleh kosong";
+        if (!form.status) newErrors.status = "* Status tidak boleh kosong";
+        if (!form.deskripsi.trim()) newErrors.deskripsi = "* Deskripsi tidak boleh kosong";
+        if (!form.foto) newErrors.foto = "* Foto harus diupload";
+        if (!form.hasil_sidang) newErrors.hasil_sidang = "* Hasil sidang harus diupload";
+        if (!form.notulensi) newErrors.notulensi = "* Notulensi harus diupload";
+
+        setErrors(newErrors);
+        return Object.keys(newErrors).length === 0;
+    };
+
     const handleSave = async () => {
         if (!token) {
             console.warn("❌ Token tidak ada");
@@ -140,10 +162,7 @@ const Approval = () => {
         }
 
         try {
-            if (!form.nama || !form.nim || !form.jurusan || !form.id_kasus) {
-                showAlert("Form Tidak Lengkap", "Mohon lengkapi semua data!");
-                return;
-            }
+            if (!validateForm()) return;
 
             const mahasiswa = {
                 nama: form.nama,
@@ -194,7 +213,8 @@ const Approval = () => {
 
             if (!res.ok) throw new Error("Gagal simpan pelanggaran");
 
-            showAlert("Berhasil", editMode ? "Data berhasil diperbarui!" : "Data berhasil ditambahkan!");
+            setSuccessMessage("Data kasus berhasil diperbarui!");
+            setOpenSuccessDialog(true);
             await fetchData();
             setOpenAddDialog(false);
             setForm({
@@ -761,7 +781,7 @@ const Approval = () => {
                             flexDirection: 'column',
                         }}
                     >
-                        <Avatar variant="square" sx={{ width: 90, height: 90, mb: 2 }} src={form.foto ? `http://localhost:3001/uploads/temp/${form.foto}` : undefined} />
+                        <Avatar variant="square" sx={{ width: 90, height: 90, mb: 2 }} src={form.foto ? `http://localhost:3001/uploads/data_pelanggaran/photo/${form.foto}` : undefined} />
                         <Button
                             variant="contained"
                             component="label"
@@ -781,7 +801,7 @@ const Approval = () => {
                             <input
                                 type="file"
                                 hidden
-                                accept="image/*"
+                                accept="image/png, image/jpg, image/jpeg"
                                 onChange={async (e) => {
                                     const file = e.target.files[0];
                                     if (!file) return;
@@ -811,12 +831,14 @@ const Approval = () => {
 
                                         const data = await res.json();
                                         setForm((prev) => ({ ...prev, foto: data.file?.name || '' }));
+                                        setErrors(prev => ({ ...prev, foto: '' }));
                                     } catch (err) {
                                         console.error('Upload gagal:', err);
                                         showAlert("Gagal", "Gagal upload foto.");
                                     }
                                 }}
                             />
+                            {errors.foto && <Typography variant="caption" color="error">{errors.foto}</Typography>}
                         </Button>
                         {/* {form.foto && (
                             <Box mt={2}>
@@ -833,86 +855,126 @@ const Approval = () => {
                             <Typography fontSize={14} fontWeight={500} mb={0.5}>Nama</Typography>
                             <OutlinedInput
                                 fullWidth
-                                placeholder="Masukkan Nama"
                                 size="small"
                                 value={form.nama}
-                                onChange={(e) => setForm(prev => ({ ...prev, nama: e.target.value }))}
+                                error={!!errors.nama}
+                                onChange={(e) => {
+                                    setForm(prev => ({ ...prev, nama: e.target.value }));
+                                    setErrors(prev => ({ ...prev, nama: '' }));
+                                }}
                             />
+                            {errors.nama && <Typography variant="caption" color="error">{errors.nama}</Typography>}
                         </Box>
                         <Box>
                             <Typography fontSize={14} fontWeight={500} mb={0.5}>NIM</Typography>
                             <OutlinedInput
                                 fullWidth
-                                placeholder="Masukkan NIM"
                                 size="small"
                                 value={form.nim}
-                                onChange={(e) => setForm(prev => ({ ...prev, nim: e.target.value }))}
+                                error={!!errors.nim}
+                                onChange={(e) => {
+                                    setForm(prev => ({ ...prev, nim: e.target.value }));
+                                    setErrors(prev => ({ ...prev, nim: '' }));
+                                }}
                             />
+                            {errors.nim && <Typography variant="caption" color="error">{errors.nim}</Typography>}
                         </Box>
                     </Box>
                     <Box display="grid" gridTemplateColumns="1fr 1fr" gap={2} mb={2}>
                         <Box>
-                            <Typography fontSize={14} fontWeight={500} mb={0.5}>Jurusan</Typography>
-                            <OutlinedInput
+                            <Typography fontSize={14} fontWeight={500} mb={0.5}>Prodi</Typography>
+                            <Select
                                 fullWidth
-                                placeholder="Masukkan Jurusan"
                                 size="small"
-                                value={form.jurusan}
-                                onChange={(e) => setForm(prev => ({ ...prev, jurusan: e.target.value }))}
-                            />
+                                value={form.jurusan || ''}
+                                displayEmpty
+                                error={!!errors.jurusan}
+                                onChange={(e) => {
+                                    setForm(prev => ({ ...prev, jurusan: e.target.value }));
+                                    setErrors(prev => ({ ...prev, jurusan: '' }));
+                                }}
+                            >
+                                <MenuItem value="Informatika">Informatika</MenuItem>
+                                <MenuItem value="Rekayasa Perangkat Lunak">Rekayasa Perangkat Lunak</MenuItem>
+                                <MenuItem value="Teknologi Informasi">Teknologi Informasi</MenuItem>
+                                <MenuItem value="Data Sains">Data Sains</MenuItem>
+                            </Select>
+                            {errors.jurusan && (
+                                <Typography variant="caption" color="error">{errors.jurusan}</Typography>
+                            )}
                         </Box>
                         <Box>
                             <Typography fontSize={14} fontWeight={500} mb={0.5}>Semester</Typography>
                             <OutlinedInput
                                 fullWidth
-                                placeholder="Masukkan Semester"
-                                size="small"
                                 type="number"
+                                size="small"
                                 value={form.semester}
-                                onChange={(e) => setForm(prev => ({ ...prev, semester: e.target.value }))}
+                                error={!!errors.semester}
+                                onChange={(e) => {
+                                    setForm(prev => ({ ...prev, semester: e.target.value }));
+                                    setErrors(prev => ({ ...prev, semester: '' }));
+                                }}
                             />
+                            {errors.semester && <Typography variant="caption" color="error">{errors.semester}</Typography>}
                         </Box>
                         <Box>
                             <Typography fontSize={14} fontWeight={500} mb={0.5}>Nama Kasus</Typography>
                             <OutlinedInput
                                 fullWidth
-                                placeholder="Masukkan Nama Kasus"
                                 size="small"
                                 value={form.jenis_kasus}
-                                onChange={(e) => setForm(prev => ({ ...prev, jenis_kasus: e.target.value }))}
+                                error={!!errors.jenis_kasus}
+                                onChange={(e) => {
+                                    setForm(prev => ({ ...prev, jenis_kasus: e.target.value }));
+                                    setErrors(prev => ({ ...prev, jenis_kasus: '' }));
+                                }}
                             />
+                            {errors.jenis_kasus && <Typography variant="caption" color="error">{errors.jenis_kasus}</Typography>}
                         </Box>
                         <Box>
                             <Typography fontSize={14} fontWeight={500} mb={0.5}>ID Kasus</Typography>
                             <OutlinedInput
                                 fullWidth
-                                placeholder="Masukkan ID Kasus"
                                 size="small"
                                 value={form.id_kasus}
-                                onChange={(e) => setForm(prev => ({ ...prev, id_kasus: e.target.value }))}
+                                error={!!errors.id_kasus}
+                                onChange={(e) => {
+                                    setForm(prev => ({ ...prev, id_kasus: e.target.value }));
+                                    setErrors(prev => ({ ...prev, id_kasus: '' }));
+                                }}
                             />
+                            {errors.id_kasus && <Typography variant="caption" color="error">{errors.id_kasus}</Typography>}
                         </Box>
                     </Box>
                     <Box mb={3}>
                         <Typography fontSize={14} fontWeight={500} mb={0.5}>Case Description</Typography>
                         <OutlinedInput
                             fullWidth
-                            placeholder="Masukkan Deskripsi Kasus"
+                            size="small"
                             multiline
                             minRows={3}
                             value={form.deskripsi}
-                            onChange={(e) => setForm(prev => ({ ...prev, deskripsi: e.target.value }))}
+                            error={!!errors.deskripsi}
+                            onChange={(e) => {
+                                setForm(prev => ({ ...prev, deskripsi: e.target.value }));
+                                setErrors(prev => ({ ...prev, deskripsi: '' }));
+                            }}
                         />
+                        {errors.deskripsi && <Typography variant="caption" color="error">{errors.deskripsi}</Typography>}
                     </Box>
-                    <Box display="grid" gridTemplateColumns="1fr 1fr" gap={2} mb={4}>
+                    <Box mb={4}>
                         <Box>
-                            <Typography fontSize={14} fontWeight={500} mb={0.5}>Status Kasus</Typography>
+                            <Typography fontSize={14} fontWeight={500} mb={0.5}>Status</Typography>
                             <Select
                                 fullWidth
-                                displayEmpty
                                 size="small"
                                 value={form.status}
-                                onChange={(e) => setForm(prev => ({ ...prev, status: e.target.value }))}
+                                error={!!errors.status}
+                                onChange={(e) => {
+                                    setForm(prev => ({ ...prev, status: e.target.value }));
+                                    setErrors(prev => ({ ...prev, status: '' }));
+                                }}
                             >
                                 <MenuItem value="">Pilih Status</MenuItem>
                                 <MenuItem value={1}>Berjalan</MenuItem>
@@ -920,20 +982,7 @@ const Approval = () => {
                                 <MenuItem value={3}>Selesai</MenuItem>
                                 <MenuItem value={4}>Dibatalkan</MenuItem>
                             </Select>
-                        </Box>
-                        <Box>
-                            <Typography fontSize={14} fontWeight={500} mb={0.5}>Status Approval</Typography>
-                            <Select
-                                fullWidth
-                                displayEmpty
-                                size="small"
-                                value={form.status_approval}
-                                onChange={(e) => setForm(prev => ({ ...prev, status_approval: e.target.value }))}
-                            >
-                                <MenuItem value="Pending">Pending</MenuItem>
-                                <MenuItem value="Approved">Approval</MenuItem>
-                                <MenuItem value="Rejected">Rejected</MenuItem>
-                            </Select>
+                            {errors.status && <Typography variant="caption" color="error">{errors.status}</Typography>}
                         </Box>
                     </Box>
                     <Box display="flex" flexDirection="column" gap={3} mb={1}>
@@ -942,20 +991,61 @@ const Approval = () => {
                                 <Typography fontSize={14} fontWeight={500} mb={0.5}>Hasil Sidang</Typography>
                                 <Button
                                     variant="contained"
+                                    component="label"
                                     startIcon={<UploadIcon />}
-                                    onClick={() => setOpenUploadHasil(true)}
-                                    sx={{
-                                        width: 120,
-                                        bgcolor: '#000',
-                                        borderRadius: 2,
-                                        textTransform: 'none',
-                                        '&:hover': { bgcolor: '#333' }
-                                    }}
+                                    sx={{ bgcolor: '#000', color: '#fff', '&:hover': { bgcolor: '#333' }, textTransform: 'none' }}
                                 >
                                     Upload
+                                    <input
+                                        type="file"
+                                        hidden
+                                        accept=".pdf,.doc,.docx,.doct,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+                                        onChange={async (e) => {
+                                            const file = e.target.files[0];
+                                            if (!file) return;
+
+                                            const token = sessionStorage.getItem('token') || localStorage.getItem('token');
+                                            if (!token) {
+                                                alert('Token tidak ditemukan. Silakan login ulang.');
+                                                return;
+                                            }
+
+                                            const formData = new FormData();
+                                            formData.append('file', file);
+
+                                            try {
+                                                const res = await fetch('http://localhost:3001/api/upload?type=hasil', {
+                                                    method: 'POST',
+                                                    headers: {
+                                                        Authorization: `Bearer ${token}`
+                                                    },
+                                                    body: formData,
+                                                });
+
+                                                if (!res.ok) {
+                                                    const errData = await res.json();
+                                                    throw new Error(errData?.error || 'Upload gagal');
+                                                }
+
+                                                const data = await res.json();
+                                                setForm((prev) => ({ ...prev, hasil_sidang: data.file?.name || '' }));
+                                                setErrors(prev => ({ ...prev, hasil_sidang: '' }));
+                                            } catch (err) {
+                                                console.error('Upload gagal:', err);
+                                                alert('Gagal upload hasil sidang.');
+                                            }
+                                        }}
+                                    />
                                 </Button>
                             </Box>
-                            <IconButton aria-label="delete" size="medium" sx={{ mt: 2.8 }}>
+                            <IconButton
+                                aria-label="delete"
+                                size="medium"
+                                sx={{ mt: 2.8 }}
+                                onClick={() => {
+                                    setForm(prev => ({ ...prev, hasil_sidang: '' }));
+                                }}
+                            >
                                 <DeleteIcon />
                             </IconButton>
                             {form.hasil_sidang && (
@@ -964,25 +1054,67 @@ const Approval = () => {
                                 </Typography>
                             )}
                         </Box>
+                        {errors.hasil_sidang && <Typography variant="caption" color="error">{errors.hasil_sidang}</Typography>}
                         <Box display="flex" alignItems="center" gap={2}>
                             <Box>
-                                <Typography fontSize={14} fontWeight={500} mb={0.5}>Notulensi Sidang</Typography>
+                                <Typography fontSize={14} fontWeight={500} mb={0.5}>Notulensi</Typography>
                                 <Button
                                     variant="contained"
+                                    component="label"
                                     startIcon={<UploadIcon />}
-                                    onClick={() => setOpenUploadNotulensi(true)}
-                                    sx={{
-                                        width: 120,
-                                        bgcolor: '#000',
-                                        borderRadius: 2,
-                                        textTransform: 'none',
-                                        '&:hover': { bgcolor: '#333' }
-                                    }}
+                                    sx={{ bgcolor: '#000', color: '#fff', '&:hover': { bgcolor: '#333' }, textTransform: 'none' }}
                                 >
                                     Upload
+                                    <input
+                                        type="file"
+                                        hidden
+                                        accept="application/pdf, application/msword, application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+                                        onChange={async (e) => {
+                                            const file = e.target.files[0];
+                                            if (!file) return;
+
+                                            const token = sessionStorage.getItem('token') || localStorage.getItem('token');
+                                            if (!token) {
+                                                alert('Token tidak ditemukan. Silakan login ulang.');
+                                                return;
+                                            }
+
+                                            const formData = new FormData();
+                                            formData.append('file', file);
+
+                                            try {
+                                                const res = await fetch('http://localhost:3001/api/upload?type=notulensi', {
+                                                    method: 'POST',
+                                                    headers: {
+                                                        Authorization: `Bearer ${token}`
+                                                    },
+                                                    body: formData,
+                                                });
+
+                                                if (!res.ok) {
+                                                    const errData = await res.json();
+                                                    throw new Error(errData?.error || 'Upload gagal');
+                                                }
+
+                                                const data = await res.json();
+                                                setForm((prev) => ({ ...prev, notulensi: data.file?.name || '' }));
+                                                setErrors(prev => ({ ...prev, notulensi: '' }));
+                                            } catch (err) {
+                                                console.error('Upload gagal:', err);
+                                                alert('Gagal upload notulensi.');
+                                            }
+                                        }}
+                                    />
                                 </Button>
                             </Box>
-                            <IconButton aria-label="delete" size="medium" sx={{ mt: 2.8 }}>
+                            <IconButton
+                                aria-label="delete"
+                                size="medium"
+                                sx={{ mt: 2.8 }}
+                                onClick={() => {
+                                    setForm(prev => ({ ...prev, notulensi: '' }));
+                                }}
+                            >
                                 <DeleteIcon />
                             </IconButton>
                             {form.notulensi && (
@@ -991,6 +1123,7 @@ const Approval = () => {
                                 </Typography>
                             )}
                         </Box>
+                        {errors.notulensi && <Typography variant="caption" color="error">{errors.notulensi}</Typography>}
                     </Box>
                 </DialogContent>
                 <DialogActions sx={{ px: 6, pb: 2, pt: 2 }}>
@@ -1533,6 +1666,26 @@ const Approval = () => {
                             '&:hover': { bgcolor: '#000' },
                         }}>
                         {approvalDialog.status === 'Approved' ? 'Approve' : 'Reject'}
+                    </Button>
+                </DialogActions>
+            </Dialog><Dialog
+                open={openSuccessDialog}
+                onClose={() => setOpenSuccessDialog(false)}
+                sx={{ '& .MuiDialog-paper': { borderRadius: 3, minWidth: 300 } }}
+            >
+                <DialogTitle sx={{ textAlign: 'center' }}>
+                    "Data Diperbarui!"
+                </DialogTitle>
+                <DialogContent sx={{ textAlign: 'center' }}>
+                    <Typography>{successMessage}</Typography>
+                </DialogContent>
+                <DialogActions sx={{ justifyContent: 'center', pb: 2 }}>
+                    <Button
+                        onClick={() => setOpenSuccessDialog(false)}
+                        variant="contained"
+                        sx={{ textTransform: 'none', borderRadius: 2, bgcolor: '#000', '&:hover': { bgcolor: '#333' } }}
+                    >
+                        OK
                     </Button>
                 </DialogActions>
             </Dialog>

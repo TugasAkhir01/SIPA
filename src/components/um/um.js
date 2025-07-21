@@ -42,9 +42,6 @@ const UserManagement = () => {
     const [deleteDialogOpen, setDeleteDialogOpen] = React.useState(false);
     const [userToDelete, setUserToDelete] = React.useState(null);
 
-    const [newUserPasswordError, setNewUserPasswordError] = React.useState([]);
-    const [editUserPasswordError, setEditUserPasswordError] = React.useState([]);
-
     const [currentPage, setCurrentPage] = React.useState(1);
     const itemsPerPage = 10;
 
@@ -73,6 +70,28 @@ const UserManagement = () => {
             title,
             message,
         });
+    };
+
+    const validateNewUserFields = (user) => {
+        const errors = {};
+        if (!user.nip) errors.nip = "* NIP tidak boleh kosong";
+        if (!user.nama) errors.nama = "* Nama tidak boleh kosong";
+        if (!user.email) errors.email = "* Email tidak boleh kosong";
+        if (!user.role) errors.role = "* Posisi harus dipilih";
+        const passwordErrors = validatePassword(user.password);
+        if (passwordErrors.length > 0) errors.password = passwordErrors;
+        return errors;
+    };
+
+    const validateEditUserFields = (user) => {
+        const errors = {};
+        if (!user.nip) errors.nip = "* NIP tidak boleh kosong";
+        if (!user.nama) errors.nama = "* Nama tidak boleh kosong";
+        if (!user.email) errors.email = "* Email tidak boleh kosong";
+        if (!user.role) errors.role = "* Posisi harus dipilih";
+        const passwordErrors = validatePassword(user.password);
+        if (passwordErrors.length > 0) errors.password = passwordErrors;
+        return errors;
     };
 
     React.useEffect(() => {
@@ -126,12 +145,15 @@ const UserManagement = () => {
         }
     };
 
+    const [editUserFieldErrors, setEditUserFieldErrors] = React.useState({});
+
     const handleUpdateUser = async () => {
-        const passwordErrors = validatePassword(selectedUser.password);
-        if (passwordErrors.length > 0) {
-            setEditUserPasswordError(passwordErrors);
+        const fieldErrors = validateEditUserFields(selectedUser);
+        if (Object.keys(fieldErrors).length > 0) {
+            setEditUserFieldErrors(fieldErrors);
             return;
         }
+        setEditUserFieldErrors({});
 
         try {
             const roleMap = {
@@ -178,6 +200,7 @@ const UserManagement = () => {
             );
 
             setEditDialogOpen(false);
+            showAlert("Sukses", "Data berhasil diperbarui!");
         } catch (err) {
             console.error("Error saat update user:", err);
             showAlert("Kesalahan", "Terjadi kesalahan saat mengupdate data.");
@@ -190,12 +213,15 @@ const UserManagement = () => {
     });
     const [showAddPassword, setShowAddPassword] = React.useState(false);
 
+    const [newUserFieldErrors, setNewUserFieldErrors] = React.useState({});
+
     const handleCreateUser = async () => {
-        const passwordErrors = validatePassword(newUser.password);
-        if (passwordErrors.length > 0) {
-            setNewUserPasswordError(passwordErrors);
+        const fieldErrors = validateNewUserFields(newUser);
+        if (Object.keys(fieldErrors).length > 0) {
+            setNewUserFieldErrors(fieldErrors);
             return;
         }
+        setNewUserFieldErrors({});
 
         try {
             const roleMap = {
@@ -492,54 +518,83 @@ const UserManagement = () => {
                             fullWidth
                             value={newUser.nip}
                             onChange={(e) => setNewUser({ ...newUser, nip: e.target.value })}
-                            sx={{ border: "1px solid #ccc", borderRadius: 1, px: 2, py: 1 }}
+                            sx={{ border: "1px solid #ccc", borderColor: newUserFieldErrors.nip ? "red" : "#ccc", borderRadius: 1, px: 2, py: 1 }}
                         />
+                        {newUserFieldErrors.nip && (
+                            <Typography fontSize={12} color="error">{newUserFieldErrors.nip}</Typography>
+                        )}
                         <Typography>Nama</Typography>
                         <InputBase
                             placeholder="Nama"
                             fullWidth
                             value={newUser.nama}
                             onChange={(e) => setNewUser({ ...newUser, nama: e.target.value })}
-                            sx={{ border: "1px solid #ccc", borderRadius: 1, px: 2, py: 1 }}
+                            sx={{ border: "1px solid #ccc", borderColor: newUserFieldErrors.nama ? "red" : "#ccc", borderRadius: 1, px: 2, py: 1 }}
                         />
+                        {newUserFieldErrors.nama && (
+                            <Typography fontSize={12} color="error">{newUserFieldErrors.nama}</Typography>
+                        )}
                         <Typography>Email</Typography>
                         <InputBase
                             placeholder="Email"
                             fullWidth
                             value={newUser.email}
                             onChange={(e) => setNewUser({ ...newUser, email: e.target.value })}
-                            sx={{ border: "1px solid #ccc", borderRadius: 1, px: 2, py: 1 }}
+                            sx={{ border: "1px solid #ccc", borderColor: newUserFieldErrors.email ? "red" : "#ccc", borderRadius: 1, px: 2, py: 1 }}
                         />
+                        {newUserFieldErrors.email && (
+                            <Typography fontSize={12} color="error">{newUserFieldErrors.email}</Typography>
+                        )}
                         <Typography>Posisi</Typography>
-                        <FormControl fullWidth>
+                        <FormControl fullWidth error={!!newUserFieldErrors.role}>
                             <Select
                                 value={newUser.role}
                                 onChange={(e) => setNewUser({ ...newUser, role: e.target.value })}
                                 displayEmpty
                                 sx={{ borderRadius: "8px", fontWeight: "bold", height: "50px", pl: 0.5 }}
                             >
-                                <MenuItem value="admin">Admin</MenuItem>
-                                <MenuItem value="staff">Staff</MenuItem>
-                                <MenuItem value="user">User</MenuItem>
+                                <MenuItem value="">
+                                    <Typography color="textPrimary" fontWeight="bold">Pilih Posisi</Typography>
+                                </MenuItem>
+                                <MenuItem value="admin">
+                                    <Typography color="textPrimary" fontWeight="bold">Admin</Typography>
+                                </MenuItem>
+                                <MenuItem value="staff">
+                                    <Typography color="textPrimary" fontWeight="bold">Staff</Typography>
+                                </MenuItem>
+                                <MenuItem value="user">
+                                    <Typography color="textPrimary" fontWeight="bold">User</Typography>
+                                </MenuItem>
                             </Select>
+                            {newUserFieldErrors.role && (
+                                <Typography fontSize={12} color="error" sx={{ mt: 0.5 }}>
+                                    {newUserFieldErrors.role}
+                                </Typography>
+                            )}
                         </FormControl>
                         <Typography>Password</Typography>
                         <Box>
-                            <Box sx={{ position: "relative" }}>
+                            <Box
+                                sx={{
+                                    border: '1px solid',
+                                    borderColor: Array.isArray(newUserFieldErrors.password) ? 'red' : '#ccc',
+                                    borderRadius: 1,
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    px: 2,
+                                    pr: 1,
+                                    height: 48,
+                                    position: 'relative',
+                                }}
+                            >
                                 <InputBase
                                     placeholder="Password"
                                     fullWidth
                                     type={showAddPassword ? "text" : "password"}
                                     value={newUser.password}
                                     onChange={(e) => setNewUser({ ...newUser, password: e.target.value })}
-                                    error={newUserPasswordError.length > 0}
                                     sx={{
-                                        border: "1px solid #ccc",
-                                        borderRadius: 1,
-                                        px: 2,
-                                        py: 1,
-                                        pr: 5,
-                                        height: 48,
+                                        flex: 1,
                                     }}
                                 />
                                 <IconButton
@@ -547,7 +602,7 @@ const UserManagement = () => {
                                     onClick={() => setShowAddPassword((prev) => !prev)}
                                     sx={{
                                         position: "absolute",
-                                        right: 8,
+                                        right: 4,
                                         top: "50%",
                                         transform: "translateY(-50%)",
                                         color: "#666",
@@ -557,12 +612,10 @@ const UserManagement = () => {
                                 </IconButton>
                             </Box>
 
-                            {newUserPasswordError.length > 0 && (
+                            {Array.isArray(newUserFieldErrors.password) && (
                                 <Box mt={0.5} ml={1}>
-                                    {newUserPasswordError.map((err, idx) => (
-                                        <Typography key={idx} color="error" fontSize={12}>
-                                            • {err}
-                                        </Typography>
+                                    {newUserFieldErrors.password.map((err, idx) => (
+                                        <Typography key={idx} color="error" fontSize={12}>* {err}</Typography>
                                     ))}
                                 </Box>
                             )}
@@ -625,8 +678,11 @@ const UserManagement = () => {
                             onChange={(e) =>
                                 setSelectedUser({ ...selectedUser, nip: e.target.value })
                             }
-                            sx={{ border: "1px solid #ccc", borderRadius: 1, px: 2, py: 1 }}
+                            sx={{ border: "1px solid #ccc", borderColor: editUserFieldErrors.nip ? "red" : "#ccc", borderRadius: 1, px: 2, py: 1 }}
                         />
+                        {editUserFieldErrors.nip && (
+                            <Typography fontSize={12} color="error">{editUserFieldErrors.nip}</Typography>
+                        )}
                         <Typography>
                             Nama
                         </Typography>
@@ -637,8 +693,11 @@ const UserManagement = () => {
                             onChange={(e) =>
                                 setSelectedUser({ ...selectedUser, nama: e.target.value })
                             }
-                            sx={{ border: "1px solid #ccc", borderRadius: 1, px: 2, py: 1 }}
+                            sx={{ border: "1px solid #ccc", borderColor: editUserFieldErrors.nama ? "red" : "#ccc", borderRadius: 1, px: 2, py: 1 }}
                         />
+                        {editUserFieldErrors.nama && (
+                            <Typography fontSize={12} color="error">{editUserFieldErrors.nama}</Typography>
+                        )}
                         <Typography>
                             Email
                         </Typography>
@@ -649,12 +708,15 @@ const UserManagement = () => {
                             onChange={(e) =>
                                 setSelectedUser({ ...selectedUser, email: e.target.value })
                             }
-                            sx={{ border: "1px solid #ccc", borderRadius: 1, px: 2, py: 1 }}
+                            sx={{ border: "1px solid #ccc", borderColor: editUserFieldErrors.email ? "red" : "#ccc", borderRadius: 1, px: 2, py: 1 }}
                         />
+                        {editUserFieldErrors.email && (
+                            <Typography fontSize={12} color="error">{editUserFieldErrors.email}</Typography>
+                        )}
                         <Typography>
                             Posisi
                         </Typography>
-                        <FormControl fullWidth>
+                        <FormControl fullWidth error={!!editUserFieldErrors.role}>
                             <Select
                                 value={selectedUser?.role || ""}
                                 onChange={(e) =>
@@ -676,53 +738,56 @@ const UserManagement = () => {
                                     },
                                 }}
                             >
-                                <MenuItem
-                                    value="admin"
-                                    sx={{ backgroundColor: "#F8F9FA", fontWeight: "bold" }}
-                                >
-                                    Admin
+                                <MenuItem value="">
+                                    <Typography color="textPrimary" fontWeight="bold">Pilih Posisi</Typography>
                                 </MenuItem>
-                                <MenuItem
-                                    value="staff"
-                                    sx={{ backgroundColor: "#FFFFFF", fontWeight: "bold" }}
-                                >
-                                    Staff
+                                <MenuItem value="admin">
+                                    <Typography color="textPrimary" fontWeight="bold">Admin</Typography>
                                 </MenuItem>
-                                <MenuItem
-                                    value="user"
-                                    sx={{ backgroundColor: "#F8F9FA", fontWeight: "bold" }}
-                                >
-                                    User
+                                <MenuItem value="staff">
+                                    <Typography color="textPrimary" fontWeight="bold">Staff</Typography>
+                                </MenuItem>
+                                <MenuItem value="user">
+                                    <Typography color="textPrimary" fontWeight="bold">User</Typography>
                                 </MenuItem>
                             </Select>
+                            {editUserFieldErrors.role && (
+                                <Typography fontSize={12} color="error" sx={{ mt: 0.5 }}>
+                                    {editUserFieldErrors.role}
+                                </Typography>
+                            )}
                         </FormControl>
                         <Typography>
                             Password
                         </Typography>
                         <Box>
-                            <Box sx={{ position: "relative" }}>
+                            <Box
+                                sx={{
+                                    border: '1px solid',
+                                    borderColor: Array.isArray(editUserFieldErrors.password) ? 'red' : '#ccc',
+                                    borderRadius: 1,
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    px: 2,
+                                    pr: 1,
+                                    height: 48,
+                                    position: 'relative',
+                                }}
+                            >
                                 <InputBase
                                     placeholder="Password"
                                     fullWidth
                                     type={showEditPassword ? "text" : "password"}
                                     value={selectedUser?.password || ""}
                                     onChange={(e) => setSelectedUser({ ...selectedUser, password: e.target.value })}
-                                    error={editUserPasswordError.length > 0}
-                                    sx={{
-                                        border: "1px solid #ccc",
-                                        borderRadius: 1,
-                                        px: 2,
-                                        py: 1,
-                                        pr: 5,
-                                        height: 48,
-                                    }}
+                                    sx={{ flex: 1 }}
                                 />
                                 <IconButton
                                     size="small"
                                     onClick={() => setShowEditPassword((prev) => !prev)}
                                     sx={{
                                         position: "absolute",
-                                        right: 8,
+                                        right: 4,
                                         top: "50%",
                                         transform: "translateY(-50%)",
                                         color: "#666",
@@ -732,12 +797,10 @@ const UserManagement = () => {
                                 </IconButton>
                             </Box>
 
-                            {editUserPasswordError.length > 0 && (
+                            {Array.isArray(editUserFieldErrors.password) && (
                                 <Box mt={0.5} ml={1}>
-                                    {editUserPasswordError.map((err, idx) => (
-                                        <Typography key={idx} color="error" fontSize={12}>
-                                            • {err}
-                                        </Typography>
+                                    {newUserFieldErrors.password.map((err, idx) => (
+                                        <Typography key={idx} color="error" fontSize={12}>• {err}</Typography>
                                     ))}
                                 </Box>
                             )}
@@ -848,6 +911,7 @@ const UserManagement = () => {
             <Dialog
                 open={alertDialog.open}
                 onClose={() => setAlertDialog({ ...alertDialog, open: false })}
+                sx={{ '& .MuiDialog-paper': { borderRadius: 3, minWidth: 300 } }}
             >
                 <DialogTitle sx={{ fontWeight: 600 }}>{alertDialog.title}</DialogTitle>
                 <DialogContent>

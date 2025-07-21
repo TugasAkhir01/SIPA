@@ -11,8 +11,12 @@ import {
 import { useNavigate } from "react-router-dom";
 import { useTheme } from "@mui/material/styles";
 import Sidebar from "../sidebar/Sidebar";
-// import CheckCircleIcon from '@mui/icons-material/CheckCircle';
+import Cropper from "react-easy-crop";
+import getCroppedImg from "../../utils/cropImage";
+import { Slider } from "@mui/material";
 import axios from "axios";
+
+// import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 
 const Profile = () => {
     const navigate = useNavigate();
@@ -24,10 +28,16 @@ const Profile = () => {
     const [fetchedUser, setFetchedUser] = React.useState(null);
     const [editOpen, setEditOpen] = React.useState(false);
     const [editData, setEditData] = React.useState({});
-    const [, setSelectedFile] = React.useState(null);
     const [previewUrl, setPreviewUrl] = React.useState(null);
     const [photoTimestamp, setPhotoTimestamp] = React.useState(Date.now());
     const [successOpen, setSuccessOpen] = useState(false);
+
+    const [crop, setCrop] = useState({ x: 0, y: 0 });
+    const [zoom, setZoom] = useState(1);
+    const [croppedAreaPixels, setCroppedAreaPixels] = useState(null);
+    const [cropModalOpen, setCropModalOpen] = useState(false);
+    const [rawImage, setRawImage] = useState(null);
+    const [errors, setErrors] = useState({});
 
     const open = Boolean(anchorEl);
     const handleClick = (event) => setAnchorEl(event.currentTarget);
@@ -67,6 +77,21 @@ const Profile = () => {
     }), [user, fetchedUser]);
 
     const handleUpdateProfile = () => {
+        const requiredFields = ["nama", "nip", "email", "no_telp", "fakultas", "jurusan"];
+        const newErrors = {};
+
+        requiredFields.forEach(field => {
+            if (!editData[field] || editData[field].trim() === "") {
+                newErrors[field] = `${fieldLabels[field]} tidak boleh kosong`;
+            }
+        });
+
+        if (Object.keys(newErrors).length > 0) {
+            setErrors(newErrors);
+            return;
+        }
+
+        setErrors({});
         axios.put(`http://localhost:3001/api/users/profile/${finalUser.id}`, editData, {
             headers: {
                 Authorization: `Bearer ${token}`
@@ -91,7 +116,7 @@ const Profile = () => {
         email: "Email",
         no_telp: "Nomor Telp.",
         fakultas: "Fakultas",
-        jurusan: "Jurusan"
+        jurusan: "Prodi"
     };
 
     const capitalizeWords = (str) =>
@@ -132,17 +157,12 @@ const Profile = () => {
                         <Box display="flex" alignItems="center" gap={3} maxWidth={800} mx="auto" mt={4}>
                             <Box position="relative">
                                 <Avatar
-                                    src={
-                                        previewUrl ||
-                                        (finalUser?.photo && finalUser.photo !== "null"
-                                            ? `http://localhost:3001/uploads/profile/${finalUser.photo}?v=${photoTimestamp}`
-                                            : "/default-avatar.png")
-                                    }
+                                    src={previewUrl || userPhoto}
                                     alt={userName}
                                     sx={{ width: 150, height: 150 }}
                                 />
-                                <IconButton component="label" size="small" sx={{ position: "absolute", bottom: 0, left: "calc(50% - 16px)" }}>
-                                    <CameraAltIcon fontSize="small" />
+                                <IconButton component="label" size="small" sx={{ position: "absolute", bottom: 0, left: "calc(46% - 16px)" }}>
+                                    <CameraAltIcon fontSize="large" sx={{ color: "#fff" }} />
                                     <input
                                         type="file"
                                         accept="image/*"
@@ -151,31 +171,14 @@ const Profile = () => {
                                             const file = e.target.files[0];
                                             if (!file) return;
 
-                                            setSelectedFile(file);
+                                            if (file.size > 2 * 1024 * 1024) {
+                                                alert("Ukuran gambar maksimal 2MB");
+                                                return;
+                                            }
 
-                                            const formData = new FormData();
-                                            formData.append("photo", file);
-
-                                            axios.put(`http://localhost:3001/api/users/profile/${finalUser.id}/photo?type=photo`, formData, {
-                                                headers: {
-                                                    Authorization: `Bearer ${token}`,
-                                                    "Content-Type": "multipart/form-data"
-                                                }
-                                            }).then((res) => {
-                                                const updatedPhoto = res.data.updatedPhoto;
-                                                setFetchedUser({ ...fetchedUser, photo: updatedPhoto });
-                                                setPhotoTimestamp(Date.now());
-
-                                                sessionStorage.setItem(
-                                                    "user",
-                                                    JSON.stringify({ ...finalUser, photo: updatedPhoto })
-                                                );
-
-                                                const preview = URL.createObjectURL(file);
-                                                setPreviewUrl(preview);
-                                            }).catch((err) => {
-                                                console.error("Upload foto gagal:", err);
-                                            });
+                                            const imageUrl = URL.createObjectURL(file);
+                                            setRawImage(imageUrl);
+                                            setCropModalOpen(true);
                                         }}
                                     />
                                 </IconButton>
@@ -227,19 +230,38 @@ const Profile = () => {
                 <DialogContent dividers>
                     {["nama", "nip", "email", "no_telp", "fakultas", "jurusan"].map((field, i) => (
                         <Box key={i} mb={2}>
-                            <Typography variant="body2" fontWeight="reguler" mb={1}>
-                                {field.toUpperCase()}
+                            <Typography variant="body2" fontWeight="regular" mb={1}>
+                                {fieldLabels[field]}
                             </Typography>
-                            <TextField
-                                fullWidth
-                                variant="outlined"
-                                placeholder={field.toUpperCase()}
-                                value={editData[field] || ""}
-                                onChange={(e) =>
-                                    setEditData({ ...editData, [field]: e.target.value })
-                                }
-                                InputLabelProps={{ shrink: false }}
-                            />
+                            {field === "jurusan" ? (
+                                <TextField
+                                    select
+                                    fullWidth
+                                    variant="outlined"
+                                    value={editData[field] || ""}
+                                    error={!!errors[field]}
+                                    helperText={errors[field] || ""}
+                                    onChange={(e) =>
+                                        setEditData({ ...editData, [field]: e.target.value })
+                                    }
+                                >
+                                    {["Informatika", "Rekayasa Perangkat Lunak", "Teknologi Informasi", "Data Sains"].map((option, idx) => (
+                                        <MenuItem key={idx} value={option}>{option}</MenuItem>
+                                    ))}
+                                </TextField>
+                            ) : (
+                                <TextField
+                                    fullWidth
+                                    variant="outlined"
+                                    placeholder={fieldLabels[field]}
+                                    value={editData[field] || ""}
+                                    error={!!errors[field]}
+                                    helperText={errors[field] || ""}
+                                    onChange={(e) =>
+                                        setEditData({ ...editData, [field]: e.target.value })
+                                    }
+                                />
+                            )}
                         </Box>
                     ))}
                 </DialogContent>
@@ -313,6 +335,87 @@ const Profile = () => {
                         OK
                     </Button>
                 </DialogContent>
+            </Dialog>
+            <Dialog open={cropModalOpen} onClose={() => setCropModalOpen(false)} maxWidth="sm" fullWidth>
+                <DialogTitle>Atur Foto Profil</DialogTitle>
+                <DialogContent sx={{ position: "relative", width: "100%", height: 600, bgcolor: "#333" }}>
+                    <Cropper
+                        image={rawImage}
+                        crop={crop}
+                        zoom={zoom}
+                        aspect={1}
+                        onCropChange={setCrop}
+                        onZoomChange={setZoom}
+                        onCropComplete={(_, cropped) => setCroppedAreaPixels(cropped)}
+                    />
+                    <Slider
+                        value={zoom}
+                        min={1}
+                        max={3}
+                        step={0.1}
+                        onChange={(e, z) => setZoom(z)}
+                        sx={{ my: 1 }}
+                    />
+                </DialogContent>
+                <DialogActions>
+                    <Button
+                        onClick={() => setCropModalOpen(false)}
+                        sx={{
+                            backgroundColor: "#fff",
+                            color: "#000",
+                            fontWeight: "bold",
+                            border: "2px solid #D1D5DB",
+                            borderRadius: "16px",
+                            px: 4,
+                            py: 1.5,
+                            textTransform: "none",
+                            boxShadow: "none",
+                            "&:hover": {
+                                backgroundColor: "#f3f4f6",
+                                borderColor: "#D1D5DB",
+                            },
+                        }}>
+                        Batal
+                    </Button>
+                    <Button
+                        variant="contained"
+                        onClick={async () => {
+                            const croppedImage = await getCroppedImg(rawImage, croppedAreaPixels);
+                            const blob = await fetch(croppedImage).then((r) => r.blob());
+                            const formData = new FormData();
+                            formData.append("photo", blob, "cropped.jpg");
+
+                            axios.put(`http://localhost:3001/api/users/profile/${finalUser.id}/photo?type=photo`, formData, {
+                                headers: {
+                                    Authorization: `Bearer ${token}`,
+                                    "Content-Type": "multipart/form-data"
+                                }
+                            }).then((res) => {
+                                const updatedPhoto = res.data.updatedPhoto;
+                                setFetchedUser({ ...fetchedUser, photo: updatedPhoto });
+                                setPhotoTimestamp(Date.now());
+                                sessionStorage.setItem("user", JSON.stringify({ ...finalUser, photo: updatedPhoto }));
+                                setPreviewUrl(croppedImage);
+                                setCropModalOpen(false);
+                            });
+                        }}
+                        sx={{
+                            backgroundColor: "#1F1F1F",
+                            color: "#fff",
+                            fontWeight: "bold",
+                            borderRadius: "16px",
+                            px: 4,
+                            py: 1.5,
+                            textTransform: "none",
+                            boxShadow: "none",
+                            "&:hover": {
+                                backgroundColor: "#333333",
+                            },
+                        }}
+                    >
+                        Simpan
+                    </Button>
+                </DialogActions>
             </Dialog>
             <Dialog open={logoutDialogOpen} onClose={() => setLogoutDialogOpen(false)}>
                 <DialogTitle>
