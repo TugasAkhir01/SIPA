@@ -60,7 +60,7 @@ const LoginForm = () => {
           data.message === "User not found" ||
           data.message === "Invalid credentials"
         ) {
-          setDialogMessage("NIM / NIP atau Password salah");
+          setDialogMessage("NIP atau Password salah");
         } else {
           setDialogMessage(data.message || "Login gagal");
         }
@@ -140,7 +140,7 @@ const LoginForm = () => {
         {error && <Alert severity="error">{error}</Alert>}
 
         <TextField
-          label="Email / NIP"
+          label="NIP"
           variant="outlined"
           fullWidth
           margin="dense"

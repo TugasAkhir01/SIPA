@@ -150,7 +150,7 @@ const HomePage = () => {
     ];
 
     const violationsPerProdi = violations.reduce((acc, curr) => {
-        const prodi = curr.jurusan || "Tidak Diketahui";
+        const prodi = (curr.jurusan || "Tidak Diketahui").trim().toLowerCase();
         acc[prodi] = (acc[prodi] || 0) + 1;
         return acc;
     }, {});
@@ -173,14 +173,17 @@ const HomePage = () => {
         jumlah
     }));
 
+    const capitalizeWords = (str) =>
+        str.replace(/\b\w/g, (char) => char.toUpperCase());
+
     const violationsPerJenis = violations.reduce((acc, curr) => {
-        const jenis = curr.jenis_kasus || "Tidak Diketahui";
+        const jenis = (curr.jenis_kasus || "Tidak Diketahui").trim().toLowerCase();
         acc[jenis] = (acc[jenis] || 0) + 1;
         return acc;
     }, {});
 
     const jenisChartData = Object.entries(violationsPerJenis).map(([jenis, jumlah]) => ({
-        jenis,
+        jenis: capitalizeWords(jenis),
         jumlah,
     }));
 
@@ -724,7 +727,7 @@ const HomePage = () => {
                                     </Box>
                                     <Box display="flex" gap={4} width="100%" mt={1}>
                                         <Box width="50%">
-                                            <Typography variant="caption" color="text.secondary">Jurusan</Typography>
+                                            <Typography variant="caption" color="text.secondary">Prodi</Typography>
                                             <Typography fontWeight={500}>{selectedCase.jurusan}</Typography>
                                         </Box>
                                         <Box width="50%">
@@ -808,7 +811,7 @@ const HomePage = () => {
                                 >
                                     <Box display="flex" alignItems="center" gap={1}>
                                         <PictureAsPdfRounded sx={{ color: '#444' }} />
-                                        <Typography>Trial Result Document</Typography>
+                                        <Typography>Hasil Sidang</Typography>
                                     </Box>
                                     <Button
                                         // href={`http://localhost:3001/uploads/data_pelanggaran/hasil_sidang/${selectedCase.hasil_sidang}`}
@@ -843,7 +846,7 @@ const HomePage = () => {
                                 >
                                     <Box display="flex" alignItems="center" gap={1}>
                                         <DescriptionRounded sx={{ color: '#444' }} />
-                                        <Typography>Minutes of Meeting</Typography>
+                                        <Typography>Notulensi</Typography>
                                     </Box>
                                     <Button
                                         onClick={() =>

@@ -145,7 +145,7 @@ const DataManagement = () => {
 
         if (!form.nama.trim()) newErrors.nama = "* Nama tidak boleh kosong";
         if (!form.nim.trim()) newErrors.nim = "* NIM tidak boleh kosong";
-        if (!form.jurusan.trim()) newErrors.jurusan = "* Jurusan tidak boleh kosong";
+        if (!form.jurusan.trim()) newErrors.jurusan = "* Prodi tidak boleh kosong";
         if (!form.semester) newErrors.semester = "* Semester tidak boleh kosong";
         if (!form.id_kasus.trim()) newErrors.id_kasus = "* ID Kasus tidak boleh kosong";
         if (!form.jenis_kasus.trim()) newErrors.jenis_kasus = "* Nama Kasus tidak boleh kosong";
@@ -1278,7 +1278,7 @@ const DataManagement = () => {
                                     </Box>
                                     <Box display="flex" gap={4} width="100%" mt={1}>
                                         <Box width="50%">
-                                            <Typography variant="caption" color="text.secondary">Jurusan</Typography>
+                                            <Typography variant="caption" color="text.secondary">Prodi</Typography>
                                             <Typography fontWeight={500}>{selectedCase.jurusan}</Typography>
                                         </Box>
                                         <Box width="50%">
@@ -1304,43 +1304,56 @@ const DataManagement = () => {
                                     mb={2}
                                 >
                                     <Box>
-                                        <Typography variant="caption" color="text.secondary">Nama Kasus</Typography>
-                                        <Typography fontWeight={500}>{selectedCase.jenis_kasus}</Typography>
+                                        <Typography variant="caption" color="text.secondary">Deskripsi Kasus</Typography>
+                                        <Typography fontWeight={500}>{selectedCase.deskripsi}</Typography>
                                     </Box>
                                     <Box>
                                         <Typography variant="caption" color="text.secondary">ID Kasus</Typography>
                                         <Typography fontWeight={500}>{selectedCase.id_kasus}</Typography>
                                     </Box>
                                 </Box>
-                                <Box mt={2}>
-                                    <Typography variant="caption" color="text.secondary">Status Kasus</Typography><br />
-                                    <Button
-                                        size="small"
-                                        sx={{
-                                            bgcolor: selectedCase.status === 3
-                                                ? "#28A745"
+                                <Box
+                                    display="grid"
+                                    gridTemplateColumns="1fr 1fr"
+                                    rowGap={2}
+                                    columnGap={4}
+                                    alignItems="center"
+                                    mt={2}>
+                                    <Box>
+                                        <Typography variant="caption" color="text.secondary">Nama Kasus</Typography>
+                                        <Typography fontWeight={500}>{selectedCase.jenis_kasus}</Typography>
+                                    </Box>
+                                    <Box>
+                                        <Typography variant="caption" color="text.secondary">Status Kasus</Typography><br />
+                                        <Button
+                                            size="small"
+                                            sx={{
+                                                bgcolor: selectedCase.status === 3
+                                                    ? "#28A745"
+                                                    : selectedCase.status === 4
+                                                        ? "#F6404F"
+                                                        : selectedCase.status === 2
+                                                            ? "#FFC107"
+                                                            : "#DEE2E6",
+                                                color:
+                                                    selectedCase.status === 1 || selectedCase.status === 2 ? "#000" : "#fff",
+                                                borderRadius: '999px',
+                                                fontSize: 13,
+                                                fontWeight: 500,
+                                                px: 3,
+                                                mt: 0.5,
+                                                pointerEvents: 'none',
+                                            }}
+                                        >
+                                            {selectedCase.status === 3
+                                                ? "Selesai"
                                                 : selectedCase.status === 4
-                                                    ? "#F6404F"
+                                                    ? "Dibatalkan"
                                                     : selectedCase.status === 2
-                                                        ? "#FFC107"
-                                                        : "#198754",
-                                            color: '#fff',
-                                            borderRadius: '999px',
-                                            fontSize: 13,
-                                            fontWeight: 500,
-                                            px: 3,
-                                            mt: 0.5,
-                                            pointerEvents: 'none',
-                                        }}
-                                    >
-                                        {selectedCase.status === 3
-                                            ? "Selesai"
-                                            : selectedCase.status === 4
-                                                ? "Dibatalkan"
-                                                : selectedCase.status === 2
-                                                    ? "Tertunda"
-                                                    : "Berjalan"}
-                                    </Button>
+                                                        ? "Tertunda"
+                                                        : "Berjalan"}
+                                        </Button>
+                                    </Box>
                                 </Box>
                             </Box>
                             <Box
@@ -1349,7 +1362,7 @@ const DataManagement = () => {
                                 boxShadow="0px 2px 8px rgba(0,0,0,0.1)"
                                 p={3}
                             >
-                                <Typography fontWeight={600} mb={2}>Documents</Typography>
+                                <Typography fontWeight={600} mb={2}>Dokumen</Typography>
                                 <Box
                                     display="flex"
                                     justifyContent="space-between"
@@ -1362,7 +1375,7 @@ const DataManagement = () => {
                                 >
                                     <Box display="flex" alignItems="center" gap={1}>
                                         <PictureAsPdfRounded sx={{ color: '#444' }} />
-                                        <Typography>Trial Result Document</Typography>
+                                        <Typography>Hasil Sidang</Typography>
                                     </Box>
                                     <Button
                                         onClick={() =>
@@ -1395,7 +1408,7 @@ const DataManagement = () => {
                                 >
                                     <Box display="flex" alignItems="center" gap={1}>
                                         <DescriptionRounded sx={{ color: '#444' }} />
-                                        <Typography>Minutes of Meeting</Typography>
+                                        <Typography>Notulensi</Typography>
                                     </Box>
                                     <Button
                                         onClick={() =>

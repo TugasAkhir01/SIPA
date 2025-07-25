@@ -74,10 +74,10 @@ const UserManagement = () => {
 
     const validateNewUserFields = (user) => {
         const errors = {};
-        if (!user.nip) errors.nip = "* NIP tidak boleh kosong";
-        if (!user.nama) errors.nama = "* Nama tidak boleh kosong";
-        if (!user.email) errors.email = "* Email tidak boleh kosong";
-        if (!user.role) errors.role = "* Posisi harus dipilih";
+        if (!user.nip) errors.nip = "NIP tidak boleh kosong";
+        if (!user.nama) errors.nama = "Nama tidak boleh kosong";
+        if (!user.email) errors.email = "Email tidak boleh kosong";
+        if (!user.role) errors.role = "Posisi harus dipilih";
         const passwordErrors = validatePassword(user.password);
         if (passwordErrors.length > 0) errors.password = passwordErrors;
         return errors;
@@ -85,10 +85,10 @@ const UserManagement = () => {
 
     const validateEditUserFields = (user) => {
         const errors = {};
-        if (!user.nip) errors.nip = "* NIP tidak boleh kosong";
-        if (!user.nama) errors.nama = "* Nama tidak boleh kosong";
-        if (!user.email) errors.email = "* Email tidak boleh kosong";
-        if (!user.role) errors.role = "* Posisi harus dipilih";
+        if (!user.nip) errors.nip = "NIP tidak boleh kosong";
+        if (!user.nama) errors.nama = "Nama tidak boleh kosong";
+        if (!user.email) errors.email = "Email tidak boleh kosong";
+        if (!user.role) errors.role = "Posisi harus dipilih";
         const passwordErrors = validatePassword(user.password);
         if (passwordErrors.length > 0) errors.password = passwordErrors;
         return errors;
@@ -512,7 +512,9 @@ const UserManagement = () => {
                 <DialogTitle sx={{ fontWeight: 600 }}>Tambah User Baru</DialogTitle>
                 <DialogContent dividers>
                     <Box display="flex" flexDirection="column" gap={2} mt={1}>
-                        <Typography>NIP</Typography>
+                        <Typography>
+                            <span style={{ color: 'red' }}>*</span> NIP
+                        </Typography>
                         <InputBase
                             placeholder="NIP"
                             fullWidth
@@ -523,7 +525,9 @@ const UserManagement = () => {
                         {newUserFieldErrors.nip && (
                             <Typography fontSize={12} color="error">{newUserFieldErrors.nip}</Typography>
                         )}
-                        <Typography>Nama</Typography>
+                        <Typography>
+                            <span style={{ color: 'red' }}>*</span> Nama
+                        </Typography>
                         <InputBase
                             placeholder="Nama"
                             fullWidth
@@ -534,7 +538,9 @@ const UserManagement = () => {
                         {newUserFieldErrors.nama && (
                             <Typography fontSize={12} color="error">{newUserFieldErrors.nama}</Typography>
                         )}
-                        <Typography>Email</Typography>
+                        <Typography>
+                            <span style={{ color: 'red' }}>*</span> Email
+                        </Typography>
                         <InputBase
                             placeholder="Email"
                             fullWidth
@@ -545,7 +551,9 @@ const UserManagement = () => {
                         {newUserFieldErrors.email && (
                             <Typography fontSize={12} color="error">{newUserFieldErrors.email}</Typography>
                         )}
-                        <Typography>Posisi</Typography>
+                        <Typography>
+                            <span style={{ color: 'red' }}>*</span> Posisi
+                        </Typography>
                         <FormControl fullWidth error={!!newUserFieldErrors.role}>
                             <Select
                                 value={newUser.role}
@@ -572,7 +580,9 @@ const UserManagement = () => {
                                 </Typography>
                             )}
                         </FormControl>
-                        <Typography>Password</Typography>
+                        <Typography>
+                            <span style={{ color: 'red' }}>*</span> Password
+                        </Typography>
                         <Box>
                             <Box
                                 sx={{
@@ -669,7 +679,7 @@ const UserManagement = () => {
                 <DialogContent dividers>
                     <Box display="flex" flexDirection="column" gap={2} mt={1}>
                         <Typography>
-                            NIP
+                            <span style={{ color: 'red' }}>*</span> NIP
                         </Typography>
                         <InputBase
                             placeholder="NIP"
@@ -684,7 +694,7 @@ const UserManagement = () => {
                             <Typography fontSize={12} color="error">{editUserFieldErrors.nip}</Typography>
                         )}
                         <Typography>
-                            Nama
+                            <span style={{ color: 'red' }}>*</span> Nama
                         </Typography>
                         <InputBase
                             placeholder="Nama"
@@ -699,7 +709,7 @@ const UserManagement = () => {
                             <Typography fontSize={12} color="error">{editUserFieldErrors.nama}</Typography>
                         )}
                         <Typography>
-                            Email
+                            <span style={{ color: 'red' }}>*</span> Email
                         </Typography>
                         <InputBase
                             placeholder="Email"
@@ -714,7 +724,7 @@ const UserManagement = () => {
                             <Typography fontSize={12} color="error">{editUserFieldErrors.email}</Typography>
                         )}
                         <Typography>
-                            Posisi
+                            <span style={{ color: 'red' }}>*</span> Posisi
                         </Typography>
                         <FormControl fullWidth error={!!editUserFieldErrors.role}>
                             <Select
@@ -758,7 +768,7 @@ const UserManagement = () => {
                             )}
                         </FormControl>
                         <Typography>
-                            Password
+                            <span style={{ color: 'red' }}>*</span> Password
                         </Typography>
                         <Box>
                             <Box
