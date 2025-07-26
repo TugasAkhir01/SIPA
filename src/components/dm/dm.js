@@ -81,7 +81,7 @@ const DataManagement = () => {
 
     const fetchData = useCallback(async () => {
         try {
-            const res = await fetch("http://localhost:3001/api/violations", {
+            const res = await fetch("http://sippak-be.up.railway.app/api/violations", {
                 headers: {
                     Authorization: `Bearer ${token}`,
                     "Content-Type": "application/json",
@@ -202,8 +202,8 @@ const DataManagement = () => {
             }
 
             const url = editMode
-                ? `http://localhost:3001/api/violations/${editId}`
-                : "http://localhost:3001/api/violations";
+                ? `http://sippak-be.up.railway.app/api/violations/${editId}`
+                : "http://sippak-be.up.railway.app/api/violations";
 
             const res = await fetch(url, {
                 method: editMode ? "PUT" : "POST",
@@ -249,7 +249,7 @@ const DataManagement = () => {
         setEditMode(true);
 
         try {
-            const res = await fetch(`http://localhost:3001/api/violations/${row.id}`, {
+            const res = await fetch(`http://sippak-be.up.railway.app/api/violations/${row.id}`, {
                 headers: {
                     Authorization: `Bearer ${token}`,
                     "Content-Type": "application/json",
@@ -290,7 +290,7 @@ const DataManagement = () => {
     }, [editData, handleEdit]);
 
     const userPhoto = user?.photo
-        ? `http://localhost:3001/uploads/profile/${user.photo}`
+        ? `http://sippak-be.up.railway.app/uploads/profile/${user.photo}`
         : "/default-avatar.png";
 
     const filteredAndSortedViolations = violations
@@ -796,7 +796,7 @@ const DataManagement = () => {
                             flexDirection: 'column',
                         }}
                     >
-                        <Avatar variant="square" sx={{ width: 90, height: 90, mb: 2 }} src={form.foto ? `http://localhost:3001/uploads/temp/${form.foto}` : undefined} />
+                        <Avatar variant="square" sx={{ width: 90, height: 90, mb: 2 }} src={form.foto ? `http://sippak-be.up.railway.app/uploads/temp/${form.foto}` : undefined} />
                         <Button
                             variant="contained"
                             component="label"
@@ -831,7 +831,7 @@ const DataManagement = () => {
                                     formData.append('file', file);
 
                                     try {
-                                        const res = await fetch('http://localhost:3001/api/upload?type=photo', {
+                                        const res = await fetch('http://sippak-be.up.railway.app/api/upload?type=photo', {
                                             method: 'POST',
                                             headers: {
                                                 Authorization: `Bearer ${token}`
@@ -858,7 +858,7 @@ const DataManagement = () => {
                         {/* {form.foto && (
                             <Box mt={2}>
                                 <img
-                                    src={`http://localhost:3001/uploads/temp/${form.foto}`}
+                                    src={`http://sippak-be.up.railway.app/uploads/temp/${form.foto}`}
                                     alt="Foto Mahasiswa"
                                     style={{ width: 120, height: 120, borderRadius: 2, objectFit: 'cover' }}
                                 />
@@ -1030,7 +1030,7 @@ const DataManagement = () => {
                                             formData.append('file', file);
 
                                             try {
-                                                const res = await fetch('http://localhost:3001/api/upload?type=hasil', {
+                                                const res = await fetch('http://sippak-be.up.railway.app/api/upload?type=hasil', {
                                                     method: 'POST',
                                                     headers: {
                                                         Authorization: `Bearer ${token}`
@@ -1099,7 +1099,7 @@ const DataManagement = () => {
                                             formData.append('file', file);
 
                                             try {
-                                                const res = await fetch('http://localhost:3001/api/upload?type=notulensi', {
+                                                const res = await fetch('http://sippak-be.up.railway.app/api/upload?type=notulensi', {
                                                     method: 'POST',
                                                     headers: {
                                                         Authorization: `Bearer ${token}`
@@ -1243,7 +1243,7 @@ const DataManagement = () => {
                             >
                                 <Box position="relative">
                                     <Avatar
-                                        src={`http://localhost:3001/uploads/data_pelanggaran/photo/${selectedCase.foto || ''}`}
+                                        src={`http://sippak-be.up.railway.app/uploads/data_pelanggaran/photo/${selectedCase.foto || ''}`}
                                         sx={{ width: 100, height: 100 }}
                                     />
                                     <Box
