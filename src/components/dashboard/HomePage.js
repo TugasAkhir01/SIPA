@@ -67,7 +67,7 @@ const HomePage = () => {
 
     const fetchData = useCallback(async () => {
         try {
-            const res = await fetch("http://localhost:3001/api/violations", {
+            const res = await fetch("http://sippak-be.up.railway.app/api/violations", {
                 headers: {
                     Authorization: `Bearer ${token}`,
                     "Content-Type": "application/json",
@@ -89,7 +89,7 @@ const HomePage = () => {
     }, [fetchData, token]);
 
     const userPhoto = user?.photo
-        ? `http://localhost:3001/uploads/profile/${user.photo}`
+        ? `http://sippak-be.up.railway.app/uploads/profile/${user.photo}`
         : "/default-avatar.png";
 
     const filteredAndSortedViolations = violations
@@ -692,7 +692,7 @@ const HomePage = () => {
                             >
                                 <Box position="relative">
                                     <Avatar
-                                        src={`http://localhost:3001/uploads/temp/${selectedCase.foto || ''}`}
+                                        src={`http://sippak-be.up.railway.app/uploads/temp/${selectedCase.foto || ''}`}
                                         sx={{ width: 100, height: 100 }}
                                     />
                                     <Box
@@ -814,7 +814,7 @@ const HomePage = () => {
                                         <Typography>Hasil Sidang</Typography>
                                     </Box>
                                     <Button
-                                        // href={`http://localhost:3001/uploads/data_pelanggaran/hasil_sidang/${selectedCase.hasil_sidang}`}
+                                        // href={`http://sippak-be.up.railway.app/uploads/data_pelanggaran/hasil_sidang/${selectedCase.hasil_sidang}`}
                                         // target="_blank"
                                         variant="contained"
                                         onClick={() =>
