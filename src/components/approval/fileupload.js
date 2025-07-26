@@ -24,7 +24,7 @@ const FileUpload = ({ type = 'hasil', onUploaded }) => {
             const formData = new FormData();
             formData.append('file', file);
 
-            const res = await axios.post(`https://sippak-be.up.railway.app/api/upload?type=${type}`, formData, {
+            const res = await axios.post(`https://sippak-be.up.railway.app/api/violations/upload?type=${type}`, formData, {
                 headers: {
                     'Content-Type': 'multipart/form-data',
                     Authorization: `Bearer ${token}`
