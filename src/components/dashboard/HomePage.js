@@ -67,7 +67,7 @@ const HomePage = () => {
 
     const fetchData = useCallback(async () => {
         try {
-            const res = await fetch("httpsss://sippak-be.up.railway.app/api/violations", {
+            const res = await fetch("https://sippak-be.up.railway.app/api/violations", {
                 headers: {
                     Authorization: `Bearer ${token}`,
                     "Content-Type": "application/json",
@@ -89,7 +89,7 @@ const HomePage = () => {
     }, [fetchData, token]);
 
     const userPhoto = user?.photo
-        ? `httpsss://sippak-be.up.railway.app/uploads/profile/${user.photo}`
+        ? `https://sippak-be.up.railway.app/uploads/profile/${user.photo}`
         : "/default-avatar.png";
 
     const filteredAndSortedViolations = violations
@@ -692,7 +692,7 @@ const HomePage = () => {
                             >
                                 <Box position="relative">
                                     <Avatar
-                                        src={`httpsss://sippak-be.up.railway.app/uploads/temp/${selectedCase.foto || ''}`}
+                                        src={`https://sippak-be.up.railway.app/uploads/temp/${selectedCase.foto || ''}`}
                                         sx={{ width: 100, height: 100 }}
                                     />
                                     <Box
@@ -814,7 +814,7 @@ const HomePage = () => {
                                         <Typography>Hasil Sidang</Typography>
                                     </Box>
                                     <Button
-                                        // href={`httpsss://sippak-be.up.railway.app/uploads/data_pelanggaran/hasil_sidang/${selectedCase.hasil_sidang}`}
+                                        // href={`https://sippak-be.up.railway.app/uploads/data_pelanggaran/hasil_sidang/${selectedCase.hasil_sidang}`}
                                         // target="_blank"
                                         variant="contained"
                                         onClick={() =>
