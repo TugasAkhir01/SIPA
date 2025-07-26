@@ -831,7 +831,7 @@ const DataManagement = () => {
                                     formData.append('file', file);
 
                                     try {
-                                        const res = await fetch('https://sippak-be.up.railway.app/api/upload?type=photo', {
+                                        const res = await fetch('https://sippak-be.up.railway.app/api/violations/upload?type=photo', {
                                             method: 'POST',
                                             headers: {
                                                 Authorization: `Bearer ${token}`
