@@ -796,7 +796,7 @@ const DataManagement = () => {
                             flexDirection: 'column',
                         }}
                     >
-                        <Avatar variant="square" sx={{ width: 90, height: 90, mb: 2 }} src={form.foto ? `https://sippak-be.up.railway.app/api/violations/uploads/temp/${form.foto}` : undefined} />
+                        <Avatar variant="square" sx={{ width: 90, height: 90, mb: 2 }} src={form.foto ? `https://sippak-be.up.railway.app/uploads/temp/${form.foto}` : undefined} />
                         <Button
                             variant="contained"
                             component="label"
