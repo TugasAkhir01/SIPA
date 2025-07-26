@@ -1,6 +1,6 @@
 export const downloadExport = async ({ id, type, nim, token }) => {
   try {
-    const res = await fetch('http://localhost:3001/api/violations/export', {
+    const res = await fetch('http://sippak-be.up.railway.app/api/violations/export', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
