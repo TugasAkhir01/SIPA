@@ -106,7 +106,7 @@ const Approval = () => {
 
     const fetchData = useCallback(async () => {
         try {
-            const res = await fetch("httpss://sippak-be.up.railway.app/api/violations", {
+            const res = await fetch("https://sippak-be.up.railway.app/api/violations", {
                 headers: {
                     Authorization: `Bearer ${token}`,
                     "Content-Type": "application/json",
@@ -200,8 +200,8 @@ const Approval = () => {
             }
 
             const url = editMode
-                ? `httpss://sippak-be.up.railway.app/api/violations/${editId}`
-                : "httpss://sippak-be.up.railway.app/api/violations";
+                ? `https://sippak-be.up.railway.app/api/violations/${editId}`
+                : "https://sippak-be.up.railway.app/api/violations";
 
             const res = await fetch(url, {
                 method: editMode ? "PUT" : "POST",
@@ -244,7 +244,7 @@ const Approval = () => {
         }
 
         try {
-            const res = await fetch(`httpss://sippak-be.up.railway.app/api/violations/${row.id}`, {
+            const res = await fetch(`https://sippak-be.up.railway.app/api/violations/${row.id}`, {
                 headers: {
                     Authorization: `Bearer ${token}`,
                     "Content-Type": "application/json",
@@ -282,7 +282,7 @@ const Approval = () => {
         if (!deleteId) return;
 
         try {
-            const res = await fetch(`httpss://sippak-be.up.railway.app/api/violations/${deleteId}`, {
+            const res = await fetch(`https://sippak-be.up.railway.app/api/violations/${deleteId}`, {
                 method: 'DELETE',
                 headers: { Authorization: `Bearer ${token}` }
             });
@@ -308,7 +308,7 @@ const Approval = () => {
 
     const updateStatusApproval = async (id, status) => {
         try {
-            const res = await fetch(`httpss://sippak-be.up.railway.app/api/violations/${id}/status`, {
+            const res = await fetch(`https://sippak-be.up.railway.app/api/violations/${id}/status`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
@@ -341,7 +341,7 @@ const Approval = () => {
     }, [editData, handleEdit]);
 
     const userPhoto = user?.photo
-        ? `httpss://sippak-be.up.railway.app/uploads/profile/${user.photo}`
+        ? `https://sippak-be.up.railway.app/uploads/profile/${user.photo}`
         : "/default-avatar.png";
 
     const filteredAndSortedViolations = violations
@@ -781,7 +781,7 @@ const Approval = () => {
                             flexDirection: 'column',
                         }}
                     >
-                        <Avatar variant="square" sx={{ width: 90, height: 90, mb: 2 }} src={form.foto ? `httpss://sippak-be.up.railway.app/uploads/data_pelanggaran/photo/${form.foto}` : undefined} />
+                        <Avatar variant="square" sx={{ width: 90, height: 90, mb: 2 }} src={form.foto ? `https://sippak-be.up.railway.app/uploads/data_pelanggaran/photo/${form.foto}` : undefined} />
                         <Button
                             variant="contained"
                             component="label"
@@ -816,7 +816,7 @@ const Approval = () => {
                                     formData.append('file', file);
 
                                     try {
-                                        const res = await fetch('httpss://sippak-be.up.railway.app/api/upload?type=photo', {
+                                        const res = await fetch('https://sippak-be.up.railway.app/api/upload?type=photo', {
                                             method: 'POST',
                                             headers: {
                                                 Authorization: `Bearer ${token}`
@@ -843,7 +843,7 @@ const Approval = () => {
                         {/* {form.foto && (
                             <Box mt={2}>
                                 <img
-                                    src={`httpss://sippak-be.up.railway.app/uploads/temp/${form.foto}`}
+                                    src={`https://sippak-be.up.railway.app/uploads/temp/${form.foto}`}
                                     alt="Foto Mahasiswa"
                                     style={{ width: 120, height: 120, borderRadius: 2, objectFit: 'cover' }}
                                 />
@@ -1014,7 +1014,7 @@ const Approval = () => {
                                             formData.append('file', file);
 
                                             try {
-                                                const res = await fetch('httpss://sippak-be.up.railway.app/api/upload?type=hasil', {
+                                                const res = await fetch('https://sippak-be.up.railway.app/api/upload?type=hasil', {
                                                     method: 'POST',
                                                     headers: {
                                                         Authorization: `Bearer ${token}`
@@ -1083,7 +1083,7 @@ const Approval = () => {
                                             formData.append('file', file);
 
                                             try {
-                                                const res = await fetch('httpss://sippak-be.up.railway.app/api/upload?type=notulensi', {
+                                                const res = await fetch('https://sippak-be.up.railway.app/api/upload?type=notulensi', {
                                                     method: 'POST',
                                                     headers: {
                                                         Authorization: `Bearer ${token}`
@@ -1227,7 +1227,7 @@ const Approval = () => {
                             >
                                 <Box position="relative">
                                     <Avatar
-                                        src={`httpss://sippak-be.up.railway.app/uploads/temp/${selectedCase.foto || ''}`}
+                                        src={`https://sippak-be.up.railway.app/uploads/temp/${selectedCase.foto || ''}`}
                                         sx={{ width: 100, height: 100 }}
                                     />
                                     <Box
@@ -1632,7 +1632,7 @@ const Approval = () => {
                     <Button
                         onClick={async () => {
                             try {
-                                const res = await fetch(`httpss://sippak-be.up.railway.app/api/violations/${approvalDialog.id}/status`, {
+                                const res = await fetch(`https://sippak-be.up.railway.app/api/violations/${approvalDialog.id}/status`, {
                                     method: 'PUT',
                                     headers: {
                                         'Content-Type': 'application/json',
