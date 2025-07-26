@@ -326,7 +326,16 @@ const HomePage = () => {
                                 <ResponsiveContainer width="100%" height="100%">
                                     <BarChart data={jenisChartData} margin={{ top: 20, right: 30, left: 0, bottom: 0 }}>
                                         <CartesianGrid strokeDasharray="3 3" />
-                                        <XAxis dataKey="jenis" angle={0} textAnchor="middle" interval={0} height={40} />
+                                        <XAxis
+                                          dataKey="jenis"
+                                          angle={0}
+                                          textAnchor="middle"
+                                          interval={0}
+                                          height={40}
+                                          tickFormatter={(value) =>
+                                            value.length > 8 ? value.substring(0, 6) + "..." : value
+                                          }
+                                        />
                                         <YAxis allowDecimals={false} />
                                         <Tooltip />
                                         <Bar dataKey="jumlah" fill="#F6404F" radius={[8, 8, 0, 0]} />
