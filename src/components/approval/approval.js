@@ -816,7 +816,7 @@ const Approval = () => {
                                     formData.append('file', file);
 
                                     try {
-                                        const res = await fetch('https://sippak-be.up.railway.app/api/upload?type=photo', {
+                                        const res = await fetch('https://sippak-be.up.railway.app/api/violations/upload?type=photo', {
                                             method: 'POST',
                                             headers: {
                                                 Authorization: `Bearer ${token}`
@@ -1014,7 +1014,7 @@ const Approval = () => {
                                             formData.append('file', file);
 
                                             try {
-                                                const res = await fetch('https://sippak-be.up.railway.app/api/upload?type=hasil', {
+                                                const res = await fetch('https://sippak-be.up.railway.app/api/violations/upload?type=hasil', {
                                                     method: 'POST',
                                                     headers: {
                                                         Authorization: `Bearer ${token}`
@@ -1083,7 +1083,7 @@ const Approval = () => {
                                             formData.append('file', file);
 
                                             try {
-                                                const res = await fetch('https://sippak-be.up.railway.app/api/upload?type=notulensi', {
+                                                const res = await fetch('https://sippak-be.up.railway.app/api/violations/upload?type=notulensi', {
                                                     method: 'POST',
                                                     headers: {
                                                         Authorization: `Bearer ${token}`
@@ -1227,7 +1227,7 @@ const Approval = () => {
                             >
                                 <Box position="relative">
                                     <Avatar
-                                        src={`https://sippak-be.up.railway.app/uploads/temp/${selectedCase.foto || ''}`}
+                                        src={`https://sippak-be.up.railway.app/api/violations/uploads/temp/${selectedCase.foto || ''}`}
                                         sx={{ width: 100, height: 100 }}
                                     />
                                     <Box
