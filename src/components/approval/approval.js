@@ -715,8 +715,8 @@ const Approval = () => {
                                             minWidth: 40,
                                             fontWeight: "bold",
                                             textTransform: "none",
-                                            bgcolor: page === 1 ? "#000" : "#fff",
-                                            color: page === 1 ? "#fff" : "#000",
+                                            bgcolor: page === currentPage  ? "#000" : "#fff",
+                                            color: page === currentPage  ? "#fff" : "#000",
                                             borderColor: "#ccc",
                                             boxShadow: "none",
                                             "&:hover": {
