@@ -62,7 +62,7 @@ const Profile = () => {
             return;
         }
 
-        axios.get(`http://sippak-be.up.railway.app/api/users/${user.id}`, {
+        axios.get(`https://sippak-be.up.railway.app/api/users/${user.id}`, {
             headers: { Authorization: `Bearer ${token}` }
         }).then((res) => {
             setFetchedUser(res.data);
@@ -92,7 +92,7 @@ const Profile = () => {
         }
 
         setErrors({});
-        axios.put(`http://sippak-be.up.railway.app/api/users/profile/${finalUser.id}`, editData, {
+        axios.put(`https://sippak-be.up.railway.app/api/users/profile/${finalUser.id}`, editData, {
             headers: {
                 Authorization: `Bearer ${token}`
             }
@@ -107,7 +107,7 @@ const Profile = () => {
 
     const userName = finalUser?.nama || "User";
     const userPhoto = finalUser?.photo
-        ? `http://sippak-be.up.railway.app/uploads/profile/${finalUser.photo}?v=${photoTimestamp}`
+        ? `https://sippak-be.up.railway.app/uploads/profile/${finalUser.photo}?v=${photoTimestamp}`
         : "/default-avatar.png";
 
     const fieldLabels = {
@@ -385,7 +385,7 @@ const Profile = () => {
                             const formData = new FormData();
                             formData.append("photo", blob, "cropped.jpg");
 
-                            axios.put(`http://sippak-be.up.railway.app/api/users/profile/${finalUser.id}/photo?type=photo`, formData, {
+                            axios.put(`https://sippak-be.up.railway.app/api/users/profile/${finalUser.id}/photo?type=photo`, formData, {
                                 headers: {
                                     Authorization: `Bearer ${token}`,
                                     "Content-Type": "multipart/form-data"
