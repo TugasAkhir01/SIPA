@@ -140,6 +140,7 @@ const UserManagement = () => {
             });
             if (!res.ok) throw new Error("Gagal menghapus user");
             setUsers((prev) => prev.filter((u) => u.id !== id));
+            showAlert("Sukses", "User berhasil dihapus.");
         } catch (err) {
             showAlert("Kesalahan", "Terjadi kesalahan saat menghapus user.");
         }
