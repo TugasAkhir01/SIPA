@@ -796,7 +796,7 @@ const DataManagement = () => {
                             flexDirection: 'column',
                         }}
                     >
-                        <Avatar variant="square" sx={{ width: 90, height: 90, mb: 2 }} src={form.foto ? `https://sippak-be.up.railway.app/uploads/temp/${form.foto}` : undefined} />
+                        <Avatar variant="square" sx={{ width: 90, height: 90, mb: 2 }} src={form.foto ? `https://sippak-be.up.railway.app/api/violations/uploads/temp/${form.foto}` : undefined} />
                         <Button
                             variant="contained"
                             component="label"
@@ -1030,7 +1030,7 @@ const DataManagement = () => {
                                             formData.append('file', file);
 
                                             try {
-                                                const res = await fetch('https://sippak-be.up.railway.app/api/upload?type=hasil', {
+                                                const res = await fetch('https://sippak-be.up.railway.app/api/violations/upload?type=hasil', {
                                                     method: 'POST',
                                                     headers: {
                                                         Authorization: `Bearer ${token}`
@@ -1099,7 +1099,7 @@ const DataManagement = () => {
                                             formData.append('file', file);
 
                                             try {
-                                                const res = await fetch('https://sippak-be.up.railway.app/api/upload?type=notulensi', {
+                                                const res = await fetch('https://sippak-be.up.railway.app/api/violations/upload?type=notulensi', {
                                                     method: 'POST',
                                                     headers: {
                                                         Authorization: `Bearer ${token}`
