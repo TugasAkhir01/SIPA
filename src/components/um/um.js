@@ -102,7 +102,7 @@ const UserManagement = () => {
 
         const fetchUsers = async () => {
             try {
-                const res = await fetch("http://sippak-be.up.railway.app/api/users", {
+                const res = await fetch("https://sippak-be.up.railway.app/api/users", {
                     headers: {
                         Authorization: `Bearer ${token}`,
                         "Content-Type": "application/json",
@@ -132,7 +132,7 @@ const UserManagement = () => {
 
     const handleDeleteUser = async (id) => {
         try {
-            const res = await fetch(`http://sippak-be.up.railway.app/api/users/${id}`, {
+            const res = await fetch(`https://sippak-be.up.railway.app/api/users/${id}`, {
                 method: "DELETE",
                 headers: {
                     Authorization: `Bearer ${token}`,
@@ -173,7 +173,7 @@ const UserManagement = () => {
                 jurusan: selectedUser.jurusan || "Rekayasa Perangkat Lunak",
             };
 
-            const res = await fetch(`http://sippak-be.up.railway.app/api/users/${selectedUser.id}`, {
+            const res = await fetch(`https://sippak-be.up.railway.app/api/users/${selectedUser.id}`, {
                 method: "PUT",
                 headers: {
                     "Content-Type": "application/json",
@@ -242,7 +242,7 @@ const UserManagement = () => {
                 photo: newUser.photo || null,
             };
 
-            const res = await fetch("http://sippak-be.up.railway.app/api/users/add", {
+            const res = await fetch("https://sippak-be.up.railway.app/api/users/add", {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
@@ -289,7 +289,7 @@ const UserManagement = () => {
     };
 
     const userPhoto = user?.photo
-        ? `http://sippak-be.up.railway.app/uploads/profile/${user.photo}`
+        ? `https://sippak-be.up.railway.app/uploads/profile/${user.photo}`
         : "/default-avatar.png";
 
     return (
