@@ -187,10 +187,7 @@ const DataManagement = () => {
 
             const formData = new FormData();
 
-            if (!editMode) {
-                // Untuk tambah baru, kirim data mahasiswa juga               
-                formData.append("mahasiswa", JSON.stringify(mahasiswa));
-            }
+            formData.append("mahasiswa", JSON.stringify(mahasiswa));
 
             formData.append("pelanggaran", JSON.stringify(pelanggaran));
 
