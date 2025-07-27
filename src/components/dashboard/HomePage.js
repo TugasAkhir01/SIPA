@@ -333,7 +333,7 @@ const HomePage = () => {
                                           interval={0}
                                           height={40}
                                           tickFormatter={(value) =>
-                                            value.length > 8 ? value.substring(0, 6) + "..." : value
+                                            value.length > 6 ? value.substring(0, 5) + "..." : value
                                           }
                                         />
                                         <YAxis allowDecimals={false} />
