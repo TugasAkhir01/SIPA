@@ -158,9 +158,6 @@ const DataManagement = () => {
         setErrors(newErrors);
         return Object.keys(newErrors).length === 0;
     };
-    
-    console.log('DATA MAHASISWA:', mahasiswa);
-    console.log('DATA YANG DIKIRIM:', formData.get('mahasiswa'));
 
     const handleSave = async () => {
         if (!token) {
