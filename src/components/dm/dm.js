@@ -74,7 +74,8 @@ const DataManagement = () => {
         hasil_sidang: '',
         notulensi: '',
         foto: '',
-        deskripsi: ''
+        deskripsi: '',
+        status_approval: 'Pending',
     });
     const [editMode, setEditMode] = React.useState(false);
     const [editId, setEditId] = React.useState(null);
@@ -182,6 +183,10 @@ const DataManagement = () => {
                 deskripsi: form.deskripsi,
             };
 
+            if (editMode) {
+                pelanggaran.status_approval = 'Pending';
+            }
+            
             const formData = new FormData();
 
             formData.append("mahasiswa", JSON.stringify(mahasiswa));
@@ -198,9 +203,6 @@ const DataManagement = () => {
                 formData.append("photo_path", form.foto);
             }
 
-            if (editMode) {
-                pelanggaran.status_approval = 'Pending';
-            }
             const url = editMode
                 ? `https://sippak-be.up.railway.app/api/violations/${editId}`
                 : "https://sippak-be.up.railway.app/api/violations";
