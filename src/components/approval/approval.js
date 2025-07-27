@@ -180,6 +180,10 @@ const Approval = () => {
                 type: editMode ? 'Update' : 'New'
             };
 
+            if (editMode) {
+                pelanggaran.status_approval = 'Pending';
+            }
+            
             const formData = new FormData();
 
             formData.append("mahasiswa", JSON.stringify(mahasiswa));
