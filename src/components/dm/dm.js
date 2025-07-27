@@ -198,7 +198,7 @@ const DataManagement = () => {
                 formData.append("photo_path", form.foto);
             }
 
-            if (editMode) {
+            if (!editMode) {
                 pelanggaran.status_approval = 'Pending';
             }
             const url = editMode
