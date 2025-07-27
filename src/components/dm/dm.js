@@ -861,8 +861,8 @@ const DataManagement = () => {
                                     }
                                 }}
                             />
-                            {errors.foto && <Typography variant="caption" color="error">{errors.foto}</Typography>}
                         </Button>
+                        {errors.foto && <Typography variant="caption" color="error">{errors.foto}</Typography>}
                         {/* {form.foto && (
                             <Box mt={2}>
                                 <img
