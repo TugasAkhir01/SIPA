@@ -182,10 +182,7 @@ const Approval = () => {
 
             const formData = new FormData();
 
-            if (!editMode) {
-                // Untuk tambah baru, kirim data mahasiswa juga
-                formData.append("mahasiswa", JSON.stringify(mahasiswa));
-            }
+            formData.append("mahasiswa", JSON.stringify(mahasiswa));
 
             formData.append("pelanggaran", JSON.stringify(pelanggaran));
 
@@ -1227,7 +1224,7 @@ const Approval = () => {
                             >
                                 <Box position="relative">
                                     <Avatar
-                                        src={`https://sippak-be.up.railway.app/uploads/temp/${selectedCase.foto || ''}`}
+                                        src={`https://sippak-be.up.railway.app/uploads/data_pelanggaran/photo/${selectedCase.foto || ''}`}
                                         sx={{ width: 100, height: 100 }}
                                     />
                                     <Box
