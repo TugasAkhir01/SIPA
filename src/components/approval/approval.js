@@ -260,6 +260,7 @@ const Approval = () => {
                 nama: data.mahasiswa?.nama || data.nama || "",
                 nim: data.mahasiswa?.nim || data.nim || "",
                 jurusan: data.mahasiswa?.jurusan || data.jurusan || "",
+                semester: data.mahasiswa?.semester || data.semester || "",
                 id_kasus: data.pelanggaran?.id_kasus || data.id_kasus || "",
                 jenis_kasus: data.pelanggaran?.jenis_kasus || data.jenis_kasus || "",
                 status: data.pelanggaran?.status || data.status || "",
