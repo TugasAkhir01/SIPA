@@ -762,43 +762,56 @@ const HomePage = () => {
                                     mb={2}
                                 >
                                     <Box>
-                                        <Typography variant="caption" color="text.secondary">Nama Kasus</Typography>
-                                        <Typography fontWeight={500}>{selectedCase.jenis_kasus}</Typography>
+                                        <Typography variant="caption" color="text.secondary">Deskripsi Kasus</Typography>
+                                        <Typography fontWeight={500}>{selectedCase.deskripsi}</Typography>
                                     </Box>
                                     <Box>
                                         <Typography variant="caption" color="text.secondary">ID Kasus</Typography>
                                         <Typography fontWeight={500}>{selectedCase.id_kasus}</Typography>
                                     </Box>
                                 </Box>
-                                <Box mt={2}>
-                                    <Typography variant="caption" color="text.secondary">Status Kasus</Typography><br />
-                                    <Button
-                                        size="small"
-                                        sx={{
-                                            bgcolor: selectedCase.status === 3
-                                                ? "#28A745"
+                                <Box
+                                    display="grid"
+                                    gridTemplateColumns="1fr 1fr"
+                                    rowGap={2}
+                                    columnGap={4}
+                                    alignItems="center"
+                                    mt={2}>
+                                    <Box>
+                                        <Typography variant="caption" color="text.secondary">Nama Kasus</Typography>
+                                        <Typography fontWeight={500}>{selectedCase.jenis_kasus}</Typography>
+                                    </Box>
+                                    <Box>
+                                        <Typography variant="caption" color="text.secondary">Status Kasus</Typography><br />
+                                        <Button
+                                            size="small"
+                                            sx={{
+                                                bgcolor: selectedCase.status === 3
+                                                    ? "#28A745"
+                                                    : selectedCase.status === 4
+                                                        ? "#F6404F"
+                                                        : selectedCase.status === 2
+                                                            ? "#FFC107"
+                                                            : "#DEE2E6",
+                                                color:
+                                                    selectedCase.status === 1 || selectedCase.status === 2 ? "#000" : "#fff",
+                                                borderRadius: '999px',
+                                                fontSize: 13,
+                                                fontWeight: 500,
+                                                px: 3,
+                                                mt: 0.5,
+                                                pointerEvents: 'none',
+                                            }}
+                                        >
+                                            {selectedCase.status === 3
+                                                ? "Selesai"
                                                 : selectedCase.status === 4
-                                                    ? "#F6404F"
+                                                    ? "Dibatalkan"
                                                     : selectedCase.status === 2
-                                                        ? "#FFC107"
-                                                        : "#198754",
-                                            color: '#fff',
-                                            borderRadius: '999px',
-                                            fontSize: 13,
-                                            fontWeight: 500,
-                                            px: 3,
-                                            mt: 0.5,
-                                            pointerEvents: 'none',
-                                        }}
-                                    >
-                                        {selectedCase.status === 3
-                                            ? "Selesai"
-                                            : selectedCase.status === 4
-                                                ? "Dibatalkan"
-                                                : selectedCase.status === 2
-                                                    ? "Tertunda"
-                                                    : "Berjalan"}
-                                    </Button>
+                                                        ? "Tertunda"
+                                                        : "Berjalan"}
+                                        </Button>
+                                    </Box>
                                 </Box>
                             </Box>
                             <Box
