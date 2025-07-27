@@ -306,7 +306,7 @@ const HomePage = () => {
                             }}
                         >
                             <Typography fontSize={16} fontWeight={600} textAlign="center" mb={2}>
-                                Jenis kasus paling sering ditemukan
+                                Jenis-jenis kasus
                             </Typography>
                             <Box
                                 sx={{
