@@ -77,7 +77,7 @@ const HomePage = () => {
             if (!res.ok) throw new Error("Gagal ambil data");
 
             const data = await res.json();
-            setViolations(data);
+            setViolations(data.filter(item => item.status_approval?.toLowerCase() !== "pending"));
         } catch (err) {
             console.error("❌ Gagal fetch:", err);
         }
